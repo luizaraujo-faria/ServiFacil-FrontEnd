@@ -1,21 +1,10 @@
-// src/components/CardsCarousel.tsx
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRef } from "react";
 
-type Card = {
-  titulo: string;
-  icone?: React.ReactNode;
-};
+export default function CardsCarousel({ titulo, cards }) {
+  const scrollRef = useRef(null);
 
-type Props = {
-  titulo: string;
-  cards: Card[];
-};
-
-export default function CardsCarousel({ titulo, cards }: Props) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  const scroll = (direction: "left" | "right") => {
+  const scroll = (direction) => {
     if (scrollRef.current) {
       const amount = direction === "left" ? -200 : 200;
       scrollRef.current.scrollBy({ left: amount, behavior: "smooth" });
