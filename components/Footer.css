@@ -1,0 +1,82 @@
+/* ---------- FOOTER ---------- */
+.footer {
+  background-color: #fff;
+  border-top: 1px solid #e5e7eb;
+  padding: 1rem 2rem;
+  font-size: 0.85rem;
+  color: #555;
+  margin-top: auto;
+}
+
+.footer-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.footer-logo {
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: #10b981;
+  text-align: left;
+}
+
+.footer-links {
+  display: flex;
+  gap: 0.8rem;
+  justify-content: flex-end;
+}
+
+.footer-links a {
+  text-decoration: none;
+  color: #10b981;
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+.footer-social {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 0.3rem;
+  justify-content: flex-start;
+  width: 100%;
+}
+
+.footer-social a {
+  color: #555;
+  font-size: 1rem;
+  transition: color 0.2s;
+}
+
+.footer-social a:hover {
+  color: #10b981;
+}
+
+.footer-copy {
+  text-align: center;
+  font-size: 0.8rem;
+  color: #777;
+  margin-top: 0.5rem;
+}
+
+/* ---------- RESPONSIVIDADE ---------- */
+@media (max-width: 768px) {
+  .footer-top {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .footer-links,
+  .footer-social {
+    justify-content: center;
+  }
+
+  .footer-logo {
+    text-align: center;
+    margin-top: 0.3rem;
+  }
+}

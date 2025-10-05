@@ -1,62 +1,101 @@
-# Front End - ServiFácil 
+# ServiFácil - Plataforma de Serviços
 
-    Projeto para a equipe de desenvolvimento Front-End da plataforma ServiFácil.
-    Cabe a cada um ler este arquivo antes de iniciar o desenvolvimento.
-    Em caso de dúvidas recorra ao restante do grupo ou aos líderes.
+Plataforma moderna para contratação de serviços domésticos.
 
-# Ferramentas
+## 🚀 Deploy
+Site disponível em: https://dudalszz.github.io/servifacil---login-e-pagamento/
 
-- React.js (JavaScript) - Biblioteca e linguagem padrão do projeto.
-- CSS3 - Ferramenta de estilização do projeto.
-- Vite - Bundler para aprimorar e simplificar o desenvolvimento.
-- ESLint - Para padronização e detecção de erros no código.
-- Prettier - Para padronizar e formatar o código junto com o ESLint.
-- Git - Para controle de versão e colaboração
+# Getting Started with Create React App
 
-# Pastas/Arquivos
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-- public/ - Pasta para recursos públicos e estáticos da aplicação.
-- src/ - Pasta principal da aplicação
+## Funcionalidades Implementadas
 
-    ├── assets/ - Pasta de recursos da aplicação.
-            
-            ├── icons/ - Icones, simbolos etc.
-            ├── images/ - Imagens, banner etc.
-    
-    components/ - Componentes JSX utilizados na aplicação.
+- ✅ **Página Inicial**: Navegação para todas as seções
+- ✅ **Perfil**: Visualização dos dados do usuário
+- ✅ **Editar Perfil**: Formulário completo para edição de dados pessoais, endereço e segurança
+- ✅ **Pagamentos**: Sistema de pagamento com formulário de cartão e resumo do pedido
+- ✅ **Sidebar Responsiva**: Menu lateral com navegação
+- ✅ **Design Responsivo**: Funciona perfeitamente em desktop e mobile
+- ✅ **Roteamento**: Navegação entre páginas usando React Router
 
-            ├── layout/ - Componentes de layout (que se repetem na estrutura de design).
-            ├── ui/ - Compoentes genéricos reutilizáveis.
-    
-    pages/ - Páginas JSX para navegação da aplicação.
+## Como Executar
 
-    App.jsx - Componente principal a receber as páginas da aplicação.
-    index.css - CSS principal da aplicação.
-    main.jsx - Componente responsável por renderizar todo o conteúdo.
+1. **Instalar dependências**:
 
-- .eslintignore - Define arquivos a serem ignorados pelo ESLint.
-- .gitignore - Define arquivos a serem ignorados pelo Git.
-- .prettierignore - Define arquivos a serem ignorados pelo Prettier.
-- .prettierrc - Configurações do Prettier.
-- eslint.config.js - Configurações do ESLint.
-- index.html - HTML principal da aplicação.
-- vite.config.js - Configurações do Vite.
+   ```bash
+   npm install
+   ```
 
-# Branches
+2. **Iniciar o servidor de desenvolvimento**:
 
-- main - Branch principal ou Branch de produção.
-- dev - Branch para desenvolvimento.
-- feature/nome-da-feature - Para criar novas features e depois mescla-la com a dev.
+   ```bash
+   npm start
+   ```
 
-# Instalação
+3. **Acessar no navegador**:
+   ```
+   http://localhost:3000
+   ```
 
-- git clone <URL DO REPOSITORIO> - Clonará o repositório remoto na sua máquina.
-- cd SF-FrontEnd - Entrará na pasta do projeto.
-- npm install - Instalará todas as dependencias do projeto.
+## Estrutura do Projeto
 
-# Uso
+```
+src/
+├── components/          # Componentes reutilizáveis
+│   ├── Sidebar.js      # Menu lateral
+│   ├── Footer.js       # Rodapé
+│   └── Layout.js       # Layout principal
+├── pages/              # Páginas da aplicação
+│   ├── Home.js         # Página inicial
+│   ├── Profile.js      # Página de perfil
+│   ├── EditProfile.js  # Página de editar perfil
+│   └── Payments.js     # Página de pagamentos
+├── styles/             # Estilos CSS
+│   ├── App.css         # Estilos principais
+│   └── Payment.css     # Estilos específicos de pagamento
+├── App.js              # Componente principal com roteamento
+└── index.js            # Ponto de entrada da aplicação
+```
 
-- cd SF-FrontEnd - Para entrar na pasta do projeto.
-- npm run dev - Para executar a aplicação.
-- npm run lint - Para "Varrer" o código com o ESLint.
-- npm run format - Para formatar o código com o Prettier.
+## Tecnologias Utilizadas
+
+- **React 18**: Framework principal
+- **React Router DOM**: Roteamento entre páginas
+- **CSS3**: Estilos responsivos
+- **Font Awesome**: Ícones
+- **Google Fonts**: Tipografia (Inter)
+
+## Funcionalidades Mantidas
+
+- ✅ Design idêntico ao original
+- ✅ Responsividade completa
+- ✅ Menu hambúrguer no mobile
+- ✅ Formulários funcionais
+- ✅ Validações e alertas
+- ✅ Navegação entre páginas
+- ✅ Sidebar com estados ativos
+
+## Melhorias Implementadas
+
+- 🔄 **Estado Gerenciado**: Uso de useState para gerenciar dados dos formulários
+- 🔄 **Navegação Programática**: Uso de useNavigate para navegação
+- 🔄 **Componentização**: Código organizado em componentes reutilizáveis
+- 🔄 **Roteamento**: Sistema de rotas moderno com React Router
+- 🔄 **Performance**: Aplicação React otimizada
+
+## Scripts Disponíveis
+
+- `npm start`: Inicia o servidor de desenvolvimento
+- `npm build`: Cria build de produção
+- `npm test`: Executa os testes
+- `npm eject`: Ejecta a configuração (não recomendado)
+
+## Compatibilidade
+
+- ✅ Chrome/Edge (últimas versões)
+- ✅ Firefox (últimas versões)
+- ✅ Safari (últimas versões)
+- ✅ Mobile (iOS/Android)
+
+O projeto está totalmente funcional e pronto para uso!
