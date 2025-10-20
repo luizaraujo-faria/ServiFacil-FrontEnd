@@ -1,0 +1,83 @@
+/* ---------- SIDEBAR ---------- */
+.sidebar {
+  width: 250px;
+  background: #ffffff;
+  border-right: 1px solid #e5e7eb;
+  padding: 2rem 1rem;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  flex-shrink: 0;
+  align-self: flex-start;
+  transition: transform 0.3s ease-in-out;
+  z-index: 1000;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar nav ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar li {
+  margin-bottom: 1.5rem;
+}
+
+.sidebar a {
+  color: #374151;
+  text-decoration: none;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  border-radius: 6px;
+}
+
+.sidebar i {
+  margin-right: 0.5rem;
+}
+
+.sidebar li.active a {
+  background-color: #ecfdf5;
+  color: #10b981;
+}
+
+/* hamburger button is rendered in Layout and styled in App.css */
+
+/* Make logo act like a button on mobile */
+.logo {
+  cursor: pointer;
+}
+.logo:focus {
+  outline: 2px solid #10b981;
+  outline-offset: 2px;
+}
+
+/* ---------- RESPONSIVIDADE ---------- */
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+    width: 280px;
+    padding-top: 80px;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  /* no-op: hamburger styles in App.css */
+  .logo {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    margin-bottom: 0;
+  }
+  /* Hide the internal logo image when open to avoid double-visual */
+  .sidebar.open .logo-icon {
+    opacity: 0;
+  }
+}
+
+@media (min-width: 769px) {
+}

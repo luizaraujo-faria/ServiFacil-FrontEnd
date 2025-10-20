@@ -1,0 +1,14 @@
+{
+  "name": "João Silva Completo",
+  "email": "joao.completo@email.com",
+  "telefone": "11999999999",
+  "cpf": "12345678901",
+  "usuario": "joao123",
+  "rua": "Rua das Flores",
+  "numero": "123",
+  "bairro": "Centro",
+  "cidade": "São Paulo",
+  "estado": "SP",
+  "cep": "01234567",
+  "senha": "novaSenha123"
+}
