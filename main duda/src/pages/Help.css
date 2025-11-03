@@ -1,0 +1,462 @@
+/* ========== HELP PAGE - MODERN UI/UX DESIGN ========== */
+
+.help-page {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  padding: 2rem;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ========== HEADER SECTION ========== */
+.help-page .header-editar {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.help-page h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  text-align: center;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, #10b981, #059669);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.help-page .security-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 12px;
+  color: #065f46;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+.help-page .security-info i {
+  font-size: 1.25rem;
+  color: #10b981;
+}
+
+/* ========== SECTION CARDS ========== */
+.help-page .section-card {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.help-page .section-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #10b981, #059669, #047857);
+  border-radius: 16px 16px 0 0;
+}
+
+.help-page .section-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 10px 25px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.help-page .section-card h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.help-page .section-card h2::before {
+  content: '';
+  width: 4px;
+  height: 1.5rem;
+  background: linear-gradient(135deg, #10b981, #059669);
+  border-radius: 2px;
+}
+
+/* ========== FAQ SECTION ========== */
+.help-faq {
+  position: relative;
+}
+
+.help-search {
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+.help-search input {
+  width: 100%;
+  padding: 1rem 1rem 1rem 3rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 1rem;
+  background: #f8fafc;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.help-search input:focus {
+  border-color: #10b981;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.help-search i {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+  font-size: 1.1rem;
+}
+
+/* ========== ACCORDION STYLES ========== */
+.help-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.help-accordion-item {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #ffffff;
+  transition: all 0.3s ease;
+}
+
+.help-accordion-item:hover {
+  border-color: #10b981;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+}
+
+.help-accordion-trigger {
+  width: 100%;
+  padding: 1.25rem 1.5rem;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #1e293b;
+  transition: all 0.3s ease;
+}
+
+.help-accordion-trigger:hover {
+  background: rgba(16, 185, 129, 0.05);
+  color: #059669;
+}
+
+.help-accordion-trigger[aria-expanded="true"] {
+  background: rgba(16, 185, 129, 0.1);
+  color: #047857;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.help-accordion-trigger i {
+  font-size: 0.875rem;
+  transition: transform 0.3s ease;
+  color: #10b981;
+}
+
+.help-accordion-trigger[aria-expanded="true"] i {
+  transform: rotate(180deg);
+}
+
+.help-accordion-panel {
+  padding: 1.5rem;
+  background: #f8fafc;
+  color: #475569;
+  line-height: 1.6;
+  border-top: 1px solid #e2e8f0;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========== SUPPORT TICKET FORM ========== */
+.help-ticket {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.help-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.help-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.help-form input,
+.help-form textarea,
+.help-form select {
+  padding: 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: #ffffff;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.help-form input:focus,
+.help-form textarea:focus,
+.help-form select:focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.help-form textarea {
+  resize: vertical;
+  min-height: 120px;
+  font-family: inherit;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  align-items: end;
+}
+
+.file-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border: 2px dashed #cbd5e1;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 500;
+}
+
+.file-label:hover {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.05);
+  color: #059669;
+}
+
+.file-label input[type="file"] {
+  display: none;
+}
+
+.file-label i {
+  color: #10b981;
+}
+
+.select-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.char-counter {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.help-form .save-btn {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.help-form .save-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+.help-form .save-btn:disabled {
+  background: #cbd5e1;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.help-form .save-btn i {
+  margin-right: 0.5rem;
+}
+
+/* ========== TOAST NOTIFICATION ========== */
+.toast {
+  margin-top: 1rem;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border-radius: 8px;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========== TUTORIALS & COMMUNITY - USING ORIGINAL STYLES FROM APP.CSS ========== */
+/* Garantir que os estilos originais do App.css tenham prioridade */
+
+.help-tutorials.section-card {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.help-page .help-community.section-card {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Garantir que os estilos dos cards de tutorial do App.css sejam aplicados */
+.help-page .help-tutorials .tutorial-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 16px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  text-decoration: none;
+  border-radius: 12px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  text-align: center;
+}
+
+.help-page .help-tutorials .tutorial-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.28);
+}
+
+.help-page .help-tutorials .tutorial-card i {
+  font-size: 24px;
+  opacity: 0.9;
+  color: white;
+}
+
+.help-page .help-tutorials .tutorial-card span {
+  font-weight: 500;
+  font-size: 14px;
+  color: white;
+}
+
+/* ========== RESPONSIVE DESIGN ========== */
+@media (max-width: 768px) {
+  .help-page {
+    padding: 1rem;
+  }
+  
+  .help-page h1 {
+    font-size: 2rem;
+  }
+  
+  .help-page .section-card {
+    padding: 1.5rem;
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .community-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 1.5rem;
+  }
+  
+  .tutorial-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .help-page .section-card {
+    padding: 1rem;
+  }
+  
+  .help-accordion-trigger {
+    padding: 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .help-accordion-panel {
+    padding: 1rem;
+  }
+}
