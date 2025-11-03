@@ -22,6 +22,7 @@ import Payments from './pages/Payments';
 import Notifications from './pages/Notifications';
 import Privacy from './pages/Privacy';
 import Help from './pages/Help';
+import PersonalProfile from './pages/PersonalProfile';
 function App() {
     return (
         <ErrorBoundary>
@@ -110,6 +111,7 @@ function App() {
                     <Route path="/notificacoes" element={<Notifications />} />
                     <Route path="/privacidade" element={<Privacy />} />
                     <Route path="/ajuda" element={<Help />} />
+                    <Route path="/perfil-pessoal" element={<PersonalProfile />} />
                 
                 </Routes>
             </Router>
