@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8081/api';
+const API_BASE_URL = 'http://localhost:8080/api';
 
 // Instância do axios com configuração base
 const api = axios.create({
@@ -19,7 +19,7 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 // Interceptor para tratar erros de resposta
@@ -32,7 +32,7 @@ api.interceptors.response.use(
       window.location.href = '/';
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;
