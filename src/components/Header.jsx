@@ -1,48 +1,95 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
+import { Home, LayoutGrid, Heart, Menu, X } from "lucide-react";
+
 
 export default function Header() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white shadow-sm">
-      <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
+    <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-200 shadow-sm">
+      <div className="mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          
+          <Link to="/home" className="flex-shrink-0 flex items-center gap-2 group">
+            <div className="flex flex-col">
+              <span className="text-xl sm:text-2xl font-bold text-violet-600 leading-tight">
+                ServiFacil
+              </span>
+              <span className="text-xs sm:text-sm text-gray-600 leading-tight font-semibold">
+                Profissionais Verificados
+              </span>
+            </div>
+          </Link>
 
-        <button
-          aria-label="Abrir menu"
-          onClick={() => setOpen((v) => !v)}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-md hover:bg-gray-100 active:scale-95"
-        >
-          {/* Ícone ☰ como SVG para melhor acessibilidade */}
-          <svg
-            width="22"
-            height="22"
-            viewBox="0 0 24 24"
-            className="text-gray-700"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
+          <nav className="hidden md:flex gap-8">
+            <Link 
+              to="/home" 
+              className="flex items-center gap-2 text-gray-700 hover:text-violet-600 transition-colors font-medium text-sm"
+            >
+              <Home className="h-4 w-4" />
+              Início
+            </Link>
+            <Link 
+              to="/categorias" 
+              className="flex items-center gap-2 text-gray-700 hover:text-violet-600 transition-colors font-medium text-sm"
+            >
+              <LayoutGrid className="h-4 w-4" />
+              Categorias
+            </Link>
+            <Link 
+              to="/favoritos" 
+              className="flex items-center gap-2 text-gray-700 hover:text-violet-600 transition-colors font-medium text-sm"
+            >
+              <Heart className="h-4 w-4" />
+              Favoritos
+            </Link>
+          </nav>
+
+          <button
+            aria-label={open ? "Fechar menu" : "Abrir menu"}
+            onClick={() => setOpen((v) => !v)}
+            className="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-lg hover:bg-gray-100 active:scale-95 transition-all"
           >
-            <path d="M3 6h18M3 12h18M3 18h18" />
-          </svg>
-        </button>
-
-        {/* Título */}
-        <h1 className="m-0 text-[18px] font-bold leading-none">
-          <span className="text-emerald-500">ServiFácil</span>
-          <span className="text-[#1A093E]"> - Conecte-se aos melhores profissionais</span>
-        </h1>
+            {open ? (
+              <X className="h-6 w-6 text-gray-700" />
+            ) : (
+              <Menu className="h-6 w-6 text-gray-700" />
+            )}
+          </button>
+        </div>
       </div>
 
       {open && (
-        <div className="border-t bg-white/95 px-4 py-3 shadow-sm sm:hidden">
-          <nav className="flex flex-col gap-2 text-sm text-[#1A093E]">
-            <button className="rounded-md px-3 py-2 text-left hover:bg-gray-100">Início</button>
-            <button className="rounded-md px-3 py-2 text-left hover:bg-gray-100">Categorias</button>
-            <button className="rounded-md px-3 py-2 text-left hover:bg-gray-100">Favoritos</button>
-          </nav>
-        </div>
+        <nav className="md:hidden border-t border-gray-200 bg-white">
+          <div className="px-4 sm:px-6 py-4 space-y-2">
+            <Link 
+              to="/home" 
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-gray-800 hover:bg-violet-50 transition-colors font-medium"
+            >
+              <Home className="h-5 w-5 text-gray-600" />
+              Início
+            </Link>
+            <Link 
+              to="/categorias" 
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-gray-800 hover:bg-violet-50 transition-colors font-medium"
+            >
+              <LayoutGrid className="h-5 w-5 text-gray-600" />
+              Categorias
+            </Link>
+            <Link 
+              to="/favoritos" 
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-gray-800 hover:bg-violet-50 transition-colors font-medium"
+            >
+              <Heart className="h-5 w-5 text-gray-600" />
+              Favoritos
+            </Link>
+          </div>
+        </nav>
       )}
     </header>
   );
-}
+}4
