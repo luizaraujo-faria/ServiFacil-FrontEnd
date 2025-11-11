@@ -35,6 +35,18 @@ export const filterServicesByCategory = async (category) => {
     };
   }
 };
+export const getAllCategories = async () => {
+  try {
+    const response = await api.get('/categories/getall');
+    return { success: true, data: response.data.data }; // conforme seu padrão
+  } catch (error) {
+    console.error('Erro ao buscar categorias:', error);
+    return {
+      success: false,
+      message: error.response?.data?.message || 'Erro ao buscar categorias',
+    };
+  }
+};
 
 export const createService = async (userId, serviceData) => {
   try {
@@ -46,7 +58,7 @@ export const createService = async (userId, serviceData) => {
         : serviceData.price
     };
 
-    console.log('Enviando para API:', formattedData);
+
 
     const response = await api.post(`/services/${userId}`, formattedData);
     return { success: true, data: response.data };

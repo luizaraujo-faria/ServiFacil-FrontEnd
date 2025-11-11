@@ -39,8 +39,8 @@ export const criarConta = async (formData) => {
       state: formData.estado || '',
     };
 
-    console.log('Enviando dados para API:', userData);
-    console.log('Foto incluída:', profilePhotoBase64 ? 'Sim' : 'Não');
+    // console.log('Enviando dados para API:', userData);
+    // console.log('Foto incluída:', profilePhotoBase64 ? 'Sim' : 'Não');
 
     const result = await register(userData);
 
@@ -100,7 +100,7 @@ async function convertImageToBase64(file) {
 
         // Log do tamanho para debug
         const sizeInKB = (base64.length / 1024).toFixed(2);
-        console.log(`📸 Imagem comprimida (userService): ${sizeInKB} KB`);
+        // console.log(`📸 Imagem comprimida (userService): ${sizeInKB} KB`);
 
         // Verificar se ainda está muito grande
         if (base64.length > 100000) { // ~100KB
