@@ -52,13 +52,27 @@ export const register = async (userData) => {
 
 export const getUser = async (userId) => {
   try {
-    const response = await api.get(`/users/${userId}`);
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      return {
+        success: false,
+        message: 'Token não encontrado'
+      };
+    }
+
+    const response = await api.get(`/users/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
 
     // Verificar se a resposta tem o formato esperado
     const userData = response.data.data || response.data;
 
     return { success: true, data: userData };
   } catch (error) {
+    console.error('Erro detalhado no getUser:', error.response?.data || error.message);
     return {
       success: false,
       message: error.response?.data?.message || 'Erro ao buscar usuário',
@@ -68,15 +82,22 @@ export const getUser = async (userId) => {
 
 export const updateUser = async (userId, userData) => {
   try {
-    const response = await api.patch(`/users/${userId}`, userData);
+    const token = localStorage.getItem('token');
+    const response = await api.patch(`/users/${userId}`, userData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
     return { success: true, data: response.data };
   } catch (error) {
+    console.error('Erro ao atualizar usuário:', error.response?.data || error);
     return {
       success: false,
       message: error.response?.data?.message || 'Erro ao atualizar usuário',
     };
   }
-};
+};;
 
 export const logout = () => {
   localStorage.removeItem('token');

@@ -7,6 +7,7 @@ import InputField from '../components/CreateAccount/InputField';
 import { UserPlus, ArrowLeft, User, Briefcase } from 'lucide-react';
 import { criarConta } from '../services/userService';
 import { validarFormulario } from '../utils/validators';
+import toast from 'react-hot-toast';
 
 function CreateAccount() {
   const navigate = useNavigate();
@@ -98,7 +99,7 @@ function CreateAccount() {
     setErrors(validationErrors);
 
     if (Object.keys(validationErrors).length > 0) {
-      alert('Por favor, corrija os erros no formulário');
+      toast('Por favor, corrija os erros no formulário');
       return;
     }
 
@@ -106,12 +107,13 @@ function CreateAccount() {
     try {
       const result = await criarConta(formData);
       if (result.success) {
-        alert('✅ Conta criada com sucesso!');
+        toast.success('Conta criada com sucesso!');
         navigate('/');
       } else {
         setServerMessage(result.message || 'Erro ao criar conta.');
       }
     } catch (error) {
+      toast.error('Erro ao criar conta:');
       console.error('Erro ao criar conta:', error);
       setServerMessage('Erro inesperado ao criar conta.');
     } finally {
@@ -120,7 +122,7 @@ function CreateAccount() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-yellow-50 py-8 px-4">
+    <div className="min-h-screen bg-linear-to-br from-violet-50 via-white to-yellow-50 py-8 px-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="bg-white shadow-lg rounded-2xl p-6 mb-6">
@@ -259,7 +261,7 @@ function CreateAccount() {
             <button
               type="submit"
               disabled={!formData.termosAceitos || loading}
-              className="w-full bg-gradient-to-r from-violet-500 to-yellow-400 hover:from-violet-600 hover:to-yellow-500 text-white py-3 rounded-xl font-semibold transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-violet-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg"
+              className="w-full bg-linear-to-r from-violet-500 to-yellow-400 hover:from-violet-600 hover:to-yellow-500 text-white py-3 rounded-xl font-semibold transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-violet-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg"
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">

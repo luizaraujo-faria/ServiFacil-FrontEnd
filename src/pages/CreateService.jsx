@@ -5,6 +5,7 @@ import { createService } from '../services/serviceService';
 import { Briefcase, DollarSign, FileText, Tag, ArrowLeft } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { getAllCategories } from '../services/serviceService';
+import toast from 'react-hot-toast';
 
 function CreateService() {
   const { user, isProfessional } = useAuth();
@@ -26,7 +27,7 @@ function CreateService() {
       if (result.success) {
         setCategories(result.data);
       } else {
-        alert(result.message || 'Erro ao carregar categorias');
+        toast.error(result.message || 'Erro ao carregar categorias');
       }
       setLoadingCategories(false);
     };
@@ -106,7 +107,7 @@ function CreateService() {
     e.preventDefault();
 
     if (!validateForm()) {
-      alert('Por favor, corrija os erros no formulário antes de continuar.');
+      toast('Por favor, corrija os erros no formulário antes de continuar.');
       return;
     }
 
@@ -122,19 +123,17 @@ function CreateService() {
         serviceStatus: 'Ativo',
       };
 
-      console.log('Enviando dados do serviço:', serviceData);
-
       const result = await createService(user.id, serviceData);
 
       if (result.success) {
-        alert('✅ Serviço criado com sucesso!');
+        toast.success('Serviço criado com sucesso!');
         navigate('/dashboard');
       } else {
-        alert(`❌ ${result.message || 'Erro ao criar serviço'}`);
+        toast.error(`${result.message || 'Erro ao criar serviço'}`);
       }
     } catch (error) {
       console.error('Erro ao criar serviço:', error);
-      alert('❌ Erro inesperado ao criar serviço. Tente novamente.');
+      toast.error('Erro inesperado ao criar serviço. Tente novamente.');
     } finally {
       setLoading(false);
     }

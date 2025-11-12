@@ -4,6 +4,8 @@ import UserNavigation from '../components/UserNavigation';
 import { useAuth } from '../hooks/useAuth';
 import { getAllServices, updateService, deleteService, getAllCategories } from '../services/serviceService';
 import { Briefcase, DollarSign, FileText, Tag, ArrowLeft, Trash2 } from 'lucide-react';
+import EditServiceSkeleton from '../components/Skeleton/EditServiceSkeleton';
+import toast from 'react-hot-toast';
 
 function EditService() {
   const { user, isProfessional } = useAuth();
@@ -12,7 +14,7 @@ function EditService() {
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
   const [deleting, setDeleting] = useState(false);
-  const [categories, setCategories] = useState([]); // v
+  const [categories, setCategories] = useState([]);
   const [formData, setFormData] = useState({
     title: '',
     price: '',
@@ -26,40 +28,24 @@ function EditService() {
 
   // Função para carregar dados do serviço
   const loadServiceData = async () => {
-    console.log('=== INICIANDO CARREGAMENTO ===');
     setLoadingData(true);
 
     try {
-      console.log('1. serviceId:', serviceId);
-      console.log('2. Tipo do serviceId:', typeof serviceId);
-
       // Buscar todos os serviços e filtrar pelo ID
-      console.log('3. Chamando getAllServices...');
+
       const result = await getAllServices();
-      console.log('4. Resultado completo:', result);
-
       if (result.success && result.data) {
-        console.log('5. Total de serviços:', result.data.length);
-        console.log('6. Todos os serviços:', result.data);
-
         const service = result.data.find((s) => {
-          console.log(`Comparando: ${s.serviceId} === ${parseInt(serviceId)}`);
           return s.serviceId === parseInt(serviceId);
         });
-
-        console.log('7. Serviço encontrado:', service);
 
         if (service) {
           // Obter userId do user ou localStorage
           const userId = user?.id || parseInt(localStorage.getItem('userId'));
 
-          console.log('8. User ID:', userId);
-          console.log('9. Professional ID:', service.professional?.userId);
-
           // Verificar se o serviço pertence ao profissional logado
           if (service.professional?.userId !== userId) {
-            console.log('10. ERRO: Serviço não pertence ao usuário');
-            alert('❌ Você não tem permissão para editar este serviço');
+            toast.error('Você não tem permissão para editar este serviço');
             navigate('/dashboard');
             return;
           }
@@ -72,27 +58,20 @@ function EditService() {
             serviceStatus: service.serviceStatus || 'Ativo',
           };
 
-          console.log('11. Dados para o formulário:', dadosFormulario);
-
           setFormData(dadosFormulario);
-
-          console.log('12. FormData atualizado!');
         } else {
-          console.log('ERRO: Serviço não encontrado na lista');
-          alert('❌ Serviço não encontrado');
+          toast.error('Serviço não encontrado');
           navigate('/dashboard');
         }
       } else {
-        console.log('ERRO: Falha ao buscar serviços ou data vazio');
-        alert('❌ Erro ao carregar serviços');
+        toast.error('Erro ao carregar serviços');
         navigate('/dashboard');
       }
     } catch (error) {
       console.error('ERRO EXCEPTION:', error);
-      alert('❌ Erro ao carregar dados do serviço');
+      toast.error('Erro ao carregar dados do serviço');
       navigate('/dashboard');
     } finally {
-      console.log('=== FINALIZANDO CARREGAMENTO ===');
       setLoadingData(false);
     }
   };
@@ -183,7 +162,7 @@ function EditService() {
     e.preventDefault();
 
     if (!validateForm()) {
-      alert('Por favor, corrija os erros no formulário antes de continuar.');
+      toast('Por favor, corrija os erros no formulário antes de continuar.');
       return;
     }
 
@@ -198,25 +177,24 @@ function EditService() {
         serviceStatus: formData.serviceStatus || null,
       };
 
-      console.log('Atualizando serviço:', serviceData);
-
       const result = await updateService(user.id, serviceId, serviceData);
 
       if (result.success) {
-        alert('✅ Serviço atualizado com sucesso!');
+        toast.success('Serviço atualizado com sucesso!');
         navigate('/dashboard');
       } else {
-        alert(`❌ ${result.message || 'Erro ao atualizar serviço'}`);
+        toast.error(`${result.message || 'Erro ao atualizar serviço'}`);
       }
     } catch (error) {
       console.error('Erro ao atualizar serviço:', error);
-      alert('❌ Erro inesperado ao atualizar serviço. Tente novamente.');
+      toast.error('Erro inesperado ao atualizar serviço. Tente novamente.');
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async () => {
+    // Mudar isso
     const confirmDelete = window.confirm('⚠️ Tem certeza que deseja excluir este serviço?\n\nEsta ação não pode ser desfeita!');
 
     if (!confirmDelete) return;
@@ -227,14 +205,14 @@ function EditService() {
       const result = await deleteService(user.id, serviceId);
 
       if (result.success) {
-        alert('✅ Serviço excluído com sucesso!');
+        toast.success('Serviço excluído com sucesso!');
         navigate('/dashboard');
       } else {
-        alert(`❌ ${result.message || 'Erro ao excluir serviço'}`);
+        toast.error(`${result.message || 'Erro ao excluir serviço'}`);
       }
     } catch (error) {
       console.error('Erro ao excluir serviço:', error);
-      alert('❌ Erro inesperado ao excluir serviço. Tente novamente.');
+      toast.error('Erro inesperado ao excluir serviço. Tente novamente.');
     } finally {
       setDeleting(false);
     }
@@ -245,12 +223,7 @@ function EditService() {
     return (
       <div className="min-h-screen bg-gray-50">
         <UserNavigation />
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-violet-400"></div>
-            <p className="mt-4 text-gray-600">Carregando dados do serviço...</p>
-          </div>
-        </div>
+        <EditServiceSkeleton />
       </div>
     );
   }

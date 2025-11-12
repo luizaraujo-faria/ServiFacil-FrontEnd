@@ -15,99 +15,114 @@ import EditService from './pages/EditService';
 import MyReviews from './pages/MyReviews';
 import ResetPassword from './pages/ResetPassword';
 import ProtectedRoute from './components/ProtectedRoute';
+import { Toaster } from 'react-hot-toast';
 
 function App() {
-    return (
-        <Router>
-            <Routes>
-                {/* Rotas públicas */}
-                <Route path="/" element={<Loggin />} />
-                <Route path="/cadastro" element={<CreateAccount />} />
-                <Route path="/cadastroProfissional" element={<ProfessionalForm />} />
-                <Route path="/Terms" element={<Terms />} />
-                <Route path="/Recuperation" element={<Recuperation />} />
-                <Route path="/reset-password/:token" element={<ResetPassword />} />
+  return (
+    <>
+      <Router>
+        <Routes>
+          {/* Rotas públicas */}
+          <Route path="/" element={<Loggin />} />
+          <Route path="/cadastro" element={<CreateAccount />} />
+          <Route path="/cadastroProfissional" element={<ProfessionalForm />} />
+          <Route path="/Terms" element={<Terms />} />
+          <Route path="/Recuperation" element={<Recuperation />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
 
-                {/* Rotas protegidas - Cliente */}
-                <Route
-                    path="/home"
-                    element={
-                        <ProtectedRoute allowedTypes={['Cliente']}>
-                            <Home />
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/servico/:serviceId"
-                    element={
-                        <ProtectedRoute allowedTypes={['Cliente']}>
-                            <ServiceDetail />
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/meus-agendamentos"
-                    element={
-                        <ProtectedRoute allowedTypes={['Cliente']}>
-                            <MyAppointments />
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/avaliar/:serviceId"
-                    element={
-                        <ProtectedRoute allowedTypes={['Cliente']}>
-                            <CreateAssessment />
-                        </ProtectedRoute>
-                    }
-                />
+          {/* Rotas protegidas - Cliente */}
+          <Route
+            path="/home"
+            element={
+              <ProtectedRoute allowedTypes={['Cliente']}>
+                <Home />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/servico/:serviceId"
+            element={
+              <ProtectedRoute allowedTypes={['Cliente']}>
+                <ServiceDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/meus-agendamentos"
+            element={
+              <ProtectedRoute allowedTypes={['Cliente']}>
+                <MyAppointments />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/avaliar/:serviceId"
+            element={
+              <ProtectedRoute allowedTypes={['Cliente']}>
+                <CreateAssessment />
+              </ProtectedRoute>
+            }
+          />
 
-                {/* Rotas protegidas - Profissional */}
-                <Route
-                    path="/dashboard"
-                    element={
-                        <ProtectedRoute allowedTypes={['Profissional']}>
-                            <ProfessionalDashboard />
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/criar-servico"
-                    element={
-                        <ProtectedRoute allowedTypes={['Profissional']}>
-                            <CreateService />
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/editar-servico/:serviceId"
-                    element={
-                        <ProtectedRoute allowedTypes={['Profissional']}>
-                            <EditService />
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/minhas-avaliacoes"
-                    element={
-                        <ProtectedRoute allowedTypes={['Profissional']}>
-                            <MyReviews />
-                        </ProtectedRoute>
-                    }
-                />
+          {/* Rotas protegidas - Profissional */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute allowedTypes={['Profissional']}>
+                <ProfessionalDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/criar-servico"
+            element={
+              <ProtectedRoute allowedTypes={['Profissional']}>
+                <CreateService />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/editar-servico/:serviceId"
+            element={
+              <ProtectedRoute allowedTypes={['Profissional']}>
+                <EditService />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/minhas-avaliacoes"
+            element={
+              <ProtectedRoute allowedTypes={['Profissional']}>
+                <MyReviews />
+              </ProtectedRoute>
+            }
+          />
 
-                {/* Rotas protegidas - Ambos */}
-                <Route
-                    path="/perfil"
-                    element={
-                        <ProtectedRoute>
-                            <Profile />
-                        </ProtectedRoute>
-                    }
-                />
-            </Routes>
-        </Router>
-    );
+          {/* Rotas protegidas - Ambos */}
+          <Route
+            path="/perfil"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </Router>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: '#fff',
+            color: '#374151',
+            border: '1px solid #e5e7eb',
+            boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
+          },
+        }}
+      />
+    </>
+  );
 }
 
 export default App;

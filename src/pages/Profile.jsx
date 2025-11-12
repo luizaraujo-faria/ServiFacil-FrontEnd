@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getUser, updateUser } from '../services/auth';
-import { Edit2, Save, X, User, Mail, Phone, Calendar, MapPin, Briefcase, CreditCard, Home } from 'lucide-react';
+import { getUser } from '../services/auth';
+import { Edit2, Save, X, User, Mail, Phone, Calendar, MapPin, Home, CreditCard, Building, Hash, Lock, Briefcase } from 'lucide-react';
 import UserNavigation from '../components/UserNavigation';
 import PhotoUpload from '../components/PhotoUpload';
 import { useAuth } from '../hooks/useAuth';
+import api from '../services/api';
+import toast from 'react-hot-toast';
+import ProfileSkeleton from '../components/Skeleton/ProfileSkeleton';
 
 function Profile() {
   const { logout } = useAuth();
@@ -12,27 +15,48 @@ function Profile() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [formData, setFormData] = useState({
-    userName: '',
-    email: '',
-    userPassword: '',
-    telephone: '',
-    profession: '',
-    cpf: '',
-    rg: '',
-    cnpj: '',
-    birthDate: '',
-    profilePhoto: '',
-    zipCode: '',
-    street: '',
-    houseNumber: '',
-    complement: '',
-    neighborhood: '',
-    city: '',
-    state: '',
-  });
+  const [formData, setFormData] = useState({});
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
+
+  // Função para converter dd/MM/yyyy para yyyy-MM-dd (para o input date)
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return '';
+
+    // Se já está no formato yyyy-MM-dd, retorna como está
+    if (dateString.includes('-') && dateString.split('-')[0].length === 4) {
+      return dateString.split('T')[0]; // Remove hora se houver
+    }
+
+    // Converte dd/MM/yyyy para yyyy-MM-dd
+    if (dateString.includes('/')) {
+      const [day, month, year] = dateString.split('/');
+      return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    }
+
+    return '';
+  };
+
+  // Função para converter yyyy-MM-dd para dd/MM/yyyy (para exibição)
+  const formatDateForDisplay = (dateString) => {
+    if (!dateString) return 'Não informado';
+
+    // Remove a parte do tempo se existir
+    const datePart = dateString.split('T')[0];
+
+    // Se já está no formato dd/MM/yyyy, retorna como está
+    if (datePart.includes('/')) {
+      return datePart;
+    }
+
+    // Converte yyyy-MM-dd para dd/MM/yyyy
+    if (datePart.includes('-')) {
+      const [year, month, day] = datePart.split('-');
+      return `${day}/${month}/${year}`;
+    }
+
+    return 'Não informado';
+  };
 
   useEffect(() => {
     loadUserData();
@@ -41,37 +65,44 @@ function Profile() {
   const loadUserData = async () => {
     setLoading(true);
     const userId = localStorage.getItem('userId');
-
-    if (!userId) {
+    const token = localStorage.getItem('token');
+    if (!userId || !token) {
+      console.error('User ID ou Token não encontrado');
       navigate('/');
       return;
     }
-
     const result = await getUser(userId);
 
     if (result.success) {
-      setUser(result.data);
+      const data = result.data;
+      setUser(data);
+
+      // CORREÇÃO: Converter userType para exibição
+      const displayUserType = data.userType === 'PF' ? 'Cliente' : data.userType === 'PJ' ? 'Profissional' : data.userType;
+
       setFormData({
-        userName: result.data.userName || '',
-        email: result.data.email || '',
-        userPassword: '', // Não carregar senha por segurança
-        telephone: result.data.telephone || '',
-        profession: result.data.profession || '',
-        cpf: result.data.cpf || '',
-        rg: result.data.rg || '',
-        cnpj: result.data.cnpj || '',
-        birthDate: result.data.birthDate || '',
-        profilePhoto: result.data.profilePhoto || '',
-        zipCode: result.data.address?.zipCode || '',
-        street: result.data.address?.street || '',
-        houseNumber: result.data.address?.houseNumber || '',
-        complement: result.data.address?.complement || '',
-        neighborhood: result.data.address?.neighborhoodID?.neighborhood || '',
-        city: result.data.address?.cityID?.city || '',
-        state: result.data.address?.stateID?.state || '',
+        userName: data.userName || '',
+        email: data.email || '',
+        userPassword: '',
+        telephone: data.telephone || '',
+        cpf: data.cpf || '',
+        cnpj: data.cnpj || '',
+        // CORREÇÃO: Armazenar o valor para exibição
+        userType: displayUserType,
+        birthDate: formatDateForInput(data.birthDate),
+        profilePhoto: data.profilePhoto || '',
+        zipCode: data.address?.zipCode || '',
+        street: data.address?.street || '',
+        houseNumber: data.address?.houseNumber || '',
+        complement: data.address?.complement || '',
+        neighborhood: data.address?.neighborhoodID?.neighborhood || '',
+        city: data.address?.cityID?.city || '',
+        state: data.address?.stateID?.state || '',
       });
     } else {
-      alert('Erro ao carregar dados do usuário: ' + result.message);
+      console.error('Erro no getUser:', result.message);
+      toast.error('Erro ao carregar dados do usuário: ' + result.message);
+      navigate('/');
     }
     setLoading(false);
   };
@@ -86,394 +117,186 @@ function Profile() {
     setFormData((prev) => ({ ...prev, profilePhoto: photoBase64 }));
   };
 
-  const validateForm = () => {
-    const newErrors = {};
-
-    if (!formData.userName || formData.userName.length < 2) {
-      newErrors.userName = 'Nome deve ter pelo menos 2 caracteres';
-    }
-
-    if (!formData.email || !/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email inválido';
-    }
-
-    if (!formData.telephone) {
-      newErrors.telephone = 'Telefone é obrigatório';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSave = async () => {
-    if (!validateForm()) return;
-
-    setSaving(true);
+  const handleSave = async (e) => {
+    e.preventDefault();
     const userId = localStorage.getItem('userId');
+    const token = localStorage.getItem('token');
 
-    // Criar cópia dos dados sem a senha se estiver vazia
-    const dataToSend = { ...formData };
-    if (!dataToSend.userPassword || dataToSend.userPassword.trim() === '') {
-      delete dataToSend.userPassword; // Não enviar senha se estiver vazia
+    if (!userId || !token) {
+      toast.error('Usuário não autenticado.');
+      logout();
+      return;
     }
 
-    // console.log('Dados sendo enviados:', dataToSend);
+    const dataToSend = {
+      userName: formData.userName || '',
+      email: formData.email || '',
+      telephone: formData.telephone || '',
+      cpf: formData.cpf || null,
+      cnpj: formData.cnpj || null,
+      userType: formData.userType || 'PF',
+      birthDate: formData.birthDate ? formatDateForDisplay(formData.birthDate) : null,
+      profilePhoto: formData.profilePhoto || null,
+      zipCode: formData.zipCode || '',
+      street: formData.street || '',
+      houseNumber: formData.houseNumber || '',
+      complement: formData.complement || '',
+      neighborhood: formData.neighborhood || '',
+      city: formData.city || '',
+      state: formData.state || '',
+    };
 
+    // Apenas adiciona senha se foi preenchida e não está vazia
+    if (formData.userPassword && formData.userPassword.trim() !== '') {
+      dataToSend.userPassword = formData.userPassword;
+    }
+
+    if (dataToSend.userType === 'PF') {
+      dataToSend.cnpj = null;
+    } else if (dataToSend.userType === 'PJ') {
+      dataToSend.cpf = null;
+    }
     try {
-      const result = await updateUser(userId, dataToSend);
+      setSaving(true);
 
-      if (result.success) {
-        alert('Perfil atualizado com sucesso!');
+      const response = await api.patch(`/users/${userId}`, dataToSend, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.data.success) {
+        toast.success('Perfil atualizado com sucesso!');
         setEditing(false);
         loadUserData();
       } else {
-        alert(result.message || 'Erro ao atualizar perfil');
+        toast.error(response.data.message || 'Erro ao atualizar perfil.');
       }
     } catch (error) {
-      console.error('Erro ao atualizar:', error);
-      alert('Erro ao atualizar perfil: ' + (error.response?.data?.message || error.message));
-    }
-    if (result.success) {
-      alert('Perfil atualizado com sucesso!');
-      setEditing(false);
-      loadUserData();
-    } else {
-      alert(result.message);
-    }
-    setSaving(false);
+      console.error('❌ Erro completo:', error);
 
-    return;
+      if (error.response) {
+        console.error('📋 Status:', error.response.status);
+        console.error('📄 Dados do erro:', error.response.data);
+
+        const errorMessage = error.response.data?.message || 'Erro interno do servidor. Verifique se todos os campos obrigatórios estão preenchidos.';
+        toast.error(`Erro ao atualizar perfil: ${errorMessage}`);
+      } else {
+        toast.error('Erro de conexão. Tente novamente.');
+      }
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleCancel = () => {
-    setFormData({
-      userName: user.userName || '',
-      email: user.email || '',
-      telephone: user.telephone || '',
-      profession: user.profession || '',
-      cpf: user.cpf || '',
-      rg: user.rg || '',
-      cnpj: user.cnpj || '',
-      birthDate: user.birthDate || '',
-      zipCode: user.address?.zipCode || '',
-      street: user.address?.street || '',
-      houseNumber: user.address?.houseNumber || '',
-      complement: user.address?.complement || '',
-      neighborhood: user.address?.neighborhoodID?.neighborhood || '',
-      city: user.address?.cityID?.city || '',
-      state: user.address?.stateID?.state || '',
-    });
-    setErrors({});
     setEditing(false);
+    loadUserData();
   };
 
-  const formatCPF = (cpf) => {
-    if (!cpf) return 'Não informado';
-    return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-  };
+  const formatCPF = (cpf) => (cpf ? cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4') : 'Não informado');
 
-  const formatCNPJ = (cnpj) => {
-    if (!cnpj) return 'Não informado';
-    return cnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
-  };
+  const formatCNPJ = (cnpj) => (cnpj ? cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5') : 'Não informado');
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-violet-400"></div>
-          <p className="mt-4 text-gray-600">Carregando perfil...</p>
-        </div>
-      </div>
+      <>
+        <UserNavigation />
+        <ProfileSkeleton />;
+      </>
     );
   }
-
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <p className="text-gray-600">Erro ao carregar perfil</p>
-          <button onClick={() => navigate('/home')} className="mt-4 px-4 py-2 bg-violet-400 text-white rounded-lg hover:bg-violet-500">
-            Voltar para Home
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header com Navegação */}
       <UserNavigation />
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden transition-all duration-300 hover:shadow-2xl">
+          <div className="bg-gradient-to-r from-violet-400 to-yellow-300 h-36 relative"></div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          {/* Profile Header */}
-          <div className="bg-gradient-to-r from-violet-400 to-yellow-400 h-32"></div>
-
-          <div className="px-6 pb-6">
-            {/* Avatar */}
-            <div className="flex items-end justify-between -mt-16 mb-6">
-              <div className="flex items-end gap-4">
+          <div className="px-4 sm:px-8 pb-8 sm:pb-10 -mt-16">
+            {/* 🔥 PARTE MODIFICADA - BOTÕES RESPONSIVOS */}
+            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between relative z-10 gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-5">
                 {editing ? (
-                  <div className="bg-white rounded-full border-4 border-white shadow-lg p-4">
+                  <div className="flex justify-center sm:justify-start">
                     <PhotoUpload currentPhoto={formData.profilePhoto} onPhotoChange={handlePhotoChange} userName={formData.userName} />
                   </div>
                 ) : (
-                  <div className="w-32 h-32 bg-white rounded-full border-4 border-white shadow-lg overflow-hidden flex items-center justify-center">
-                    {user.profilePhoto ? (
-                      <img src={user.profilePhoto} alt="Foto de perfil" className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full bg-violet-400 flex items-center justify-center text-white text-3xl font-bold">{user.userName?.substring(0, 2).toUpperCase() || 'U'}</div>
-                    )}
+                  <div className="flex justify-center sm:justify-start">
+                    <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white shadow-lg overflow-hidden bg-violet-200 flex items-center justify-center text-xl sm:text-3xl font-bold text-white">
+                      {user.profilePhoto ? <img src={user.profilePhoto} alt="Foto" className="w-full h-full object-cover" /> : user.userName?.substring(0, 2).toUpperCase()}
+                    </div>
                   </div>
                 )}
-                <div className="mb-2">
-                  <h2 className="text-2xl font-bold text-gray-800">{user.userName}</h2>
-                  <p className="text-gray-600">{user.userType}</p>
+                <div className="text-center sm:text-left">
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-800 break-words">{user.userName}</h2>
+                  <p className="text-gray-500 text-sm sm:text-base">{user.userType === 'PF' ? 'Cliente' : 'Profissional'}</p>
                 </div>
               </div>
 
-              {!editing && (
-                <button onClick={() => setEditing(true)} className="flex items-center gap-2 px-4 py-2 bg-yellow-400 text-white rounded-lg hover:bg-yellow-500 transition mb-2">
-                  <Edit2 className="w-4 h-4" />
-                  Editar Perfil
-                </button>
-              )}
-
-              {editing && (
-                <div className="flex gap-2 mb-2">
-                  <button onClick={handleSave} disabled={saving} className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition disabled:opacity-50">
+              {/* BOTÕES - AGORA RESPONSIVOS */}
+              {editing ? (
+                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                  <button onClick={handleSave} disabled={saving} className="flex items-center justify-center gap-2 px-4 py-3 sm:py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition disabled:bg-green-300 w-full sm:w-auto">
                     <Save className="w-4 h-4" />
                     {saving ? 'Salvando...' : 'Salvar'}
                   </button>
-                  <button onClick={handleCancel} disabled={saving} className="flex items-center gap-2 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition disabled:opacity-50">
+                  <button onClick={handleCancel} className="flex items-center justify-center gap-2 px-4 py-3 sm:py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition w-full sm:w-auto">
                     <X className="w-4 h-4" />
                     Cancelar
                   </button>
                 </div>
+              ) : (
+                <button onClick={() => setEditing(true)} className="flex items-center justify-center gap-2 px-4 py-3 sm:py-2 bg-yellow-400 text-white rounded-lg hover:bg-yellow-500 transition w-full sm:w-auto">
+                  <Edit2 className="w-4 h-4" />
+                  Editar
+                </button>
               )}
             </div>
 
-            {/* Informações Pessoais */}
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Informações Pessoais</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Nome */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      <User className="w-4 h-4 inline mr-2" />
-                      Nome Completo
-                    </label>
-                    {editing ? (
-                      <input type="text" name="userName" value={formData.userName} onChange={handleChange} className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-400 ${errors.userName ? 'border-red-500' : 'border-gray-300'}`} />
-                    ) : (
-                      <p className="text-gray-800 py-2">{user.userName}</p>
-                    )}
-                    {errors.userName && <p className="text-red-500 text-sm mt-1">{errors.userName}</p>}
-                  </div>
+            <div className="mt-8 sm:mt-10 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+              <InfoField icon={<User />} label="Nome" name="userName" value={user.userName} {...{ editing, formData, handleChange, errors }} />
+              <InfoField icon={<Mail />} label="Email" name="email" value={user.email} {...{ editing, formData, handleChange, errors }} />
+              <InfoField icon={<Phone />} label="Telefone" name="telephone" value={user.telephone} {...{ editing, formData, handleChange, errors }} />
 
-                  {/* Email */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      <Mail className="w-4 h-4 inline mr-2" />
-                      Email
-                    </label>
-                    {editing ? (
-                      <input type="email" name="email" value={formData.email} onChange={handleChange} className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-400 ${errors.email ? 'border-red-500' : 'border-gray-300'}`} />
-                    ) : (
-                      <p className="text-gray-800 py-2">{user.email}</p>
-                    )}
-                    {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-                  </div>
+              {/* Agora o campo data funciona corretamente */}
+              <InfoField icon={<Calendar />} label="Nascimento" name="birthDate" value={formatDateForDisplay(user.birthDate)} inputProps={{ type: 'date' }} {...{ editing, formData, handleChange }} />
 
-                  {/* Telefone */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      <Phone className="w-4 h-4 inline mr-2" />
-                      Telefone
-                    </label>
-                    {editing ? (
-                      <input
-                        type="text"
-                        name="telephone"
-                        value={formData.telephone}
-                        onChange={handleChange}
-                        placeholder="(XX) XXXXX-XXXX"
-                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-400 ${errors.telephone ? 'border-red-500' : 'border-gray-300'}`}
-                      />
-                    ) : (
-                      <p className="text-gray-800 py-2">{user.telephone}</p>
-                    )}
-                    {errors.telephone && <p className="text-red-500 text-sm mt-1">{errors.telephone}</p>}
-                  </div>
-
-                  {/* Senha (apenas em edição) */}
-                  {editing && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">🔒 Nova Senha (opcional)</label>
-                      <input
-                        type="password"
-                        name="userPassword"
-                        value={formData.userPassword}
-                        onChange={handleChange}
-                        placeholder="Deixe em branco para manter a atual"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-400"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">Mínimo 8 caracteres</p>
-                    </div>
-                  )}
-
-                  {/* Data de Nascimento */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      <Calendar className="w-4 h-4 inline mr-2" />
-                      Data de Nascimento
-                    </label>
-                    {editing ? (
-                      <input type="date" name="birthDate" value={formData.birthDate} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-400" />
-                    ) : (
-                      <p className="text-gray-800 py-2">{user.birthDate}</p>
-                    )}
-                  </div>
-
-                  {/* CPF */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      <CreditCard className="w-4 h-4 inline mr-2" />
-                      CPF
-                    </label>
-                    {editing ? (
-                      <input type="text" name="cpf" value={formData.cpf} onChange={handleChange} placeholder="000.000.000-00" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-400" />
-                    ) : (
-                      <p className="text-gray-800 py-2">{formatCPF(user.cpf)}</p>
-                    )}
-                  </div>
-
-                  {/* RG */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      <CreditCard className="w-4 h-4 inline mr-2" />
-                      RG
-                    </label>
-                    {editing ? (
-                      <input type="text" name="rg" value={formData.rg} onChange={handleChange} placeholder="00.000.000-0" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-400" />
-                    ) : (
-                      <p className="text-gray-800 py-2">{user.rg || 'Não informado'}</p>
-                    )}
-                  </div>
-
-                  {/* Profissão */}
-                  {user.userType === 'Profissional' && (
+              {/* CORREÇÃO: Select com valores PF/PJ mas exibindo Cliente/Profissional */}
+              <InfoField
+                icon={<Briefcase />}
+                label="Tipo de Conta"
+                name="userType"
+                value={formData.userType} // Usa formData que já está convertido para exibição
+                {...{ editing, formData, handleChange }}
+                inputProps={{
+                  as: 'select',
+                  children: (
                     <>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          <Briefcase className="w-4 h-4 inline mr-2" />
-                          Profissão
-                        </label>
-                        {editing ? (
-                          <input type="text" name="profession" value={formData.profession} onChange={handleChange} placeholder="Ex: Desenvolvedor, Designer..." className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-400" />
-                        ) : (
-                          <p className="text-gray-800 py-2">{user.profession || 'Não informado'}</p>
-                        )}
-                      </div>
-
-                      {/* CNPJ */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          <CreditCard className="w-4 h-4 inline mr-2" />
-                          CNPJ (opcional)
-                        </label>
-                        {editing ? (
-                          <input type="text" name="cnpj" value={formData.cnpj} onChange={handleChange} placeholder="00.000.000/0000-00" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-400" />
-                        ) : (
-                          <p className="text-gray-800 py-2">{formatCNPJ(user.cnpj)}</p>
-                        )}
-                      </div>
+                      <option value="Cliente">Cliente</option>
+                      <option value="Profissional">Profissional</option>
                     </>
-                  )}
-                </div>
-              </div>
+                  ),
+                }}
+              />
 
-              {/* Endereço */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                  <MapPin className="w-5 h-5 inline mr-2" />
-                  Endereço
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* CEP */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">CEP</label>
-                    {editing ? (
-                      <input type="text" name="zipCode" value={formData.zipCode} onChange={handleChange} placeholder="12345-678" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-400" />
-                    ) : (
-                      <p className="text-gray-800 py-2">{user.address?.zipCode || 'Não informado'}</p>
-                    )}
-                  </div>
+              {formData.userType === 'Cliente' && <InfoField icon={<CreditCard />} label="CPF" name="cpf" value={formatCPF(user.cpf)} {...{ editing, formData, handleChange }} />}
+              {formData.userType === 'Profissional' && <InfoField icon={<Building />} label="CNPJ" name="cnpj" value={formatCNPJ(user.cnpj)} {...{ editing, formData, handleChange }} />}
+              <InfoField icon={<Lock />} label="Nova Senha" name="userPassword" value="" inputProps={{ type: 'password', placeholder: editing ? 'Deixe em branco para não alterar' : '********' }} {...{ editing, formData, handleChange, errors }} />
+            </div>
 
-                  {/* Rua */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Rua</label>
-                    {editing ? (
-                      <input type="text" name="street" value={formData.street} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-400" />
-                    ) : (
-                      <p className="text-gray-800 py-2">{user.address?.street || 'Não informado'}</p>
-                    )}
-                  </div>
-
-                  {/* Número */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Número</label>
-                    {editing ? (
-                      <input type="text" name="houseNumber" value={formData.houseNumber} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-400" />
-                    ) : (
-                      <p className="text-gray-800 py-2">{user.address?.houseNumber || 'Não informado'}</p>
-                    )}
-                  </div>
-
-                  {/* Complemento */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Complemento</label>
-                    {editing ? (
-                      <input type="text" name="complement" value={formData.complement} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-400" />
-                    ) : (
-                      <p className="text-gray-800 py-2">{user.address?.complement || 'Não informado'}</p>
-                    )}
-                  </div>
-
-                  {/* Bairro */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Bairro</label>
-                    {editing ? (
-                      <input type="text" name="neighborhood" value={formData.neighborhood} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-400" />
-                    ) : (
-                      <p className="text-gray-800 py-2">{user.address?.neighborhoodID?.neighborhood || 'Não informado'}</p>
-                    )}
-                  </div>
-
-                  {/* Cidade */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Cidade</label>
-                    {editing ? (
-                      <input type="text" name="city" value={formData.city} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-400" />
-                    ) : (
-                      <p className="text-gray-800 py-2">{user.address?.cityID?.city || 'Não informado'}</p>
-                    )}
-                  </div>
-
-                  {/* Estado */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
-                    {editing ? (
-                      <input type="text" name="state" value={formData.state} onChange={handleChange} maxLength={2} placeholder="PA" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-400" />
-                    ) : (
-                      <p className="text-gray-800 py-2">{user.address?.stateID?.state || 'Não informado'}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
+            <h3 className="text-lg font-semibold text-gray-800 mt-8 sm:mt-10 mb-4 flex items-center gap-2">
+              <MapPin className="w-5 h-5 text-violet-500" /> Endereço
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+              <InfoField icon={<Hash />} label="CEP" name="zipCode" value={formData.zipCode} {...{ editing, formData, handleChange }} />
+              <InfoField icon={<Home />} label="Rua" name="street" value={formData.street} {...{ editing, formData, handleChange }} />
+              <InfoField icon={<Building />} label="Número" name="houseNumber" value={formData.houseNumber} {...{ editing, formData, handleChange }} />
+              <InfoField icon={<Home />} label="Complemento" name="complement" value={formData.complement} {...{ editing, formData, handleChange }} />
+              <InfoField icon={<MapPin />} label="Bairro" name="neighborhood" value={formData.neighborhood} {...{ editing, formData, handleChange }} />
+              <InfoField icon={<MapPin />} label="Cidade" name="city" value={formData.city} {...{ editing, formData, handleChange }} />
+              <InfoField icon={<MapPin />} label="Estado" name="state" value={formData.state} {...{ editing, formData, handleChange }} />
             </div>
           </div>
         </div>
@@ -481,5 +304,38 @@ function Profile() {
     </div>
   );
 }
+
+// Componente InfoField permanece o mesmo
+const InfoField = ({ icon, label, value, name, editing, formData, handleChange, errors = {}, type = 'text', inputProps = {} }) => {
+  const error = errors[name];
+  const inputValue = formData[name] !== undefined ? String(formData[name]) : '';
+
+  let displayValue = value;
+  if (name === 'userPassword' && !editing) {
+    displayValue = '********';
+  }
+
+  return (
+    <div>
+      <label className="text-sm text-gray-700 font-medium mb-1 block">
+        <span className="inline-flex items-center gap-1">
+          {icon} {label}
+        </span>
+      </label>
+      {editing ? (
+        inputProps.as === 'select' ? (
+          <select name={name} value={inputValue} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-violet-400 border-gray-300">
+            {inputProps.children}
+          </select>
+        ) : (
+          <input type={inputProps.type || type} name={name} value={inputValue} onChange={handleChange} className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-violet-400 ${error ? 'border-red-500' : 'border-gray-300'}`} {...inputProps} />
+        )
+      ) : (
+        <p className="text-gray-800 bg-gray-50 px-3 py-2 rounded-md border border-gray-200 break-words">{displayValue || 'Não informado'}</p>
+      )}
+      {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
+    </div>
+  );
+};
 
 export default Profile;
