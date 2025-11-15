@@ -6,6 +6,7 @@ import { createAppointment } from '../services/appointmentService';
 import { getServiceById } from '../services/serviceService';
 import reviewService from '../services/reviewService';
 import toast from 'react-hot-toast';
+import ServiceDetailSkeleton from '../components/Skeleton/ServiceDetailSkeleton';
 
 function ServiceDetail() {
   const { serviceId } = useParams();
@@ -101,8 +102,16 @@ function ServiceDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-400"></div>
+      <div>
+        <header className="bg-white shadow-sm">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <button onClick={() => navigate('/home')} className="flex items-center gap-2 text-violet-800 hover:text-violet-600">
+              <ArrowLeft className="w-5 h-5" />
+              Voltar
+            </button>
+          </div>
+        </header>
+        <ServiceDetailSkeleton />
       </div>
     );
   }

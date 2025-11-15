@@ -5,15 +5,19 @@ import reviewService from '../services/reviewService';
 import { Calendar, Clock, X, Star } from 'lucide-react';
 import UserNavigation from '../components/UserNavigation';
 import ReviewModal from '../components/ReviewModal';
+import ConfirmModal from '../components/ConfirmModal';
 import AppointmentSkeleton from '../components/Skeleton/AppointmentSkeleton';
 import toast from 'react-hot-toast';
 
 function MyAppointments() {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [cancelLoading, setCancelLoading] = useState(false); // NOVO ESTADO
   const [activeTab, setActiveTab] = useState('Pendente');
   const [showReviewModal, setShowReviewModal] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [appointmentToCancel, setAppointmentToCancel] = useState(null);
   const navigate = useNavigate();
 
   const tabs = ['Pendente', 'Concluido', 'Cancelado'];
@@ -27,7 +31,6 @@ function MyAppointments() {
     const userId = localStorage.getItem('userId');
     const result = await getUserAppointments(userId, activeTab);
     if (result.success) {
-      // Verificar quais agendamentos já foram avaliados
       const appointmentsWithReviewStatus = await Promise.all(
         result.data.map(async (appointment) => {
           if (appointment.appointmentStatus === 'Concluido') {
@@ -50,32 +53,47 @@ function MyAppointments() {
     setLoading(false);
   };
 
-  const handleCancelAppointment = async (appointmentId) => {
-    if (!confirm('Deseja realmente cancelar este agendamento?')) return;
+  const handleOpenCancelModal = (appointment) => {
+    setAppointmentToCancel(appointment);
+    setShowCancelModal(true);
+  };
 
-    const userId = localStorage.getItem('userId');
-    const result = await cancelAppointment(userId, appointmentId);
-    if (result.success) {
-      toast.success('Agendamento cancelado com sucesso!');
-      loadAppointments();
-    } else {
-      toast.error(result.message);
+  const handleCloseCancelModal = () => {
+    setShowCancelModal(false);
+    setAppointmentToCancel(null);
+  };
+
+  const handleConfirmCancel = async () => {
+    if (!appointmentToCancel) return;
+
+    setCancelLoading(true); // ATIVA LOADING
+
+    try {
+      const userId = localStorage.getItem('userId');
+      const result = await cancelAppointment(userId, appointmentToCancel.appointmentId);
+      if (result.success) {
+        toast.success('Agendamento cancelado com sucesso!');
+        loadAppointments();
+      } else {
+        toast.error(result.message);
+      }
+    } catch (error) {
+      toast.error('Erro ao cancelar agendamento');
+    } finally {
+      setCancelLoading(false); // DESATIVA LOADING
+      handleCloseCancelModal();
     }
   };
 
-  // Função para converter data do formato dd/MM/yyyy HH:mm para Date
   const parseDate = (dateString) => {
     if (!dateString) return null;
 
-    // Se já é um objeto Date válido
     if (dateString instanceof Date) return dateString;
 
-    // Se está no formato ISO (2025-10-23T15:00:00)
     if (dateString.includes('T')) {
       return new Date(dateString);
     }
 
-    // Se está no formato brasileiro (23/10/2025 15:00)
     const [datePart, timePart] = dateString.split(' ');
     const [day, month, year] = datePart.split('/');
     const [hours, minutes] = timePart ? timePart.split(':') : ['00', '00'];
@@ -105,7 +123,6 @@ function MyAppointments() {
   };
 
   const handleOpenReviewModal = async (appointment) => {
-    // Buscar nome do profissional do serviço
     let professionalName = 'Profissional';
 
     if (appointment.service?.professional?.userName) {
@@ -136,13 +153,11 @@ function MyAppointments() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header com Navegação */}
       <UserNavigation />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Título da Página */}
         <h1 className="text-3xl font-bold text-gray-800 mb-6">Meus Agendamentos</h1>
-        {/* Tabs */}
+
         <div className="flex gap-2 mb-6 overflow-x-auto">
           {tabs.map((tab) => (
             <button key={tab} onClick={() => setActiveTab(tab)} className={`px-6 py-2 rounded-lg whitespace-nowrap transition ${activeTab === tab ? 'bg-yellow-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'}`}>
@@ -151,7 +166,6 @@ function MyAppointments() {
           ))}
         </div>
 
-        {/* Appointments List */}
         {loading ? (
           <AppointmentSkeleton />
         ) : appointments.length === 0 ? (
@@ -192,7 +206,7 @@ function MyAppointments() {
 
                   {appointment.appointmentStatus === 'Pendente' && (
                     <div className="flex gap-2">
-                      <button onClick={() => handleCancelAppointment(appointment.appointmentId)} className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition flex items-center gap-2">
+                      <button onClick={() => handleOpenCancelModal(appointment)} className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition flex items-center gap-2">
                         <X className="w-4 h-4" />
                         Cancelar
                       </button>
@@ -221,7 +235,6 @@ function MyAppointments() {
         )}
       </div>
 
-      {/* Modal de Avaliação */}
       {showReviewModal && selectedAppointment && (
         <ReviewModal
           appointment={{
@@ -232,6 +245,18 @@ function MyAppointments() {
           onSubmit={handleSubmitReview}
         />
       )}
+
+      <ConfirmModal
+        open={showCancelModal}
+        title="Cancelar Agendamento"
+        message="Tem certeza que deseja cancelar este agendamento? Esta ação não pode ser desfeita."
+        confirmText="Sim, Cancelar"
+        cancelText="Manter Agendamento"
+        confirmColor="red"
+        loading={cancelLoading} // NOVA PROP
+        onClose={handleCloseCancelModal}
+        onConfirm={handleConfirmCancel}
+      />
     </div>
   );
 }

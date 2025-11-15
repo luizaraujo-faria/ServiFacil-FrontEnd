@@ -104,16 +104,23 @@ function Home() {
       <UserNavigation />
 
       {/* HERO SECTION */}
-      <div className="bg-gradient-to-r from-indigo-950 to-indigo-400 text-white py-16 shadow-lg">
-        <div className="max-w-6xl mx-auto px-4">
-          <h1 className="text-4xl sm:text-5xl font-extrabold mb-3">
-            Encontre o <span className="text-yellow-300">Profissional</span> Ideal
-          </h1>
-          <p className="text-lg mb-8 opacity-90">Conecte-se com os melhores prestadores de serviço em sua região.</p>
+      <div className="relative overflow-hidden bg-gradient-to-br from-[#0f172a] via-[#1e1b4b] to-[#312e81] text-white py-24 shadow-xl">
+        <div className="absolute inset-0 opacity-10 bg-[url('https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&q=80&w=1500')] bg-cover bg-center"></div>
 
-          <div className="bg-white rounded-xl flex items-center max-w-2xl p-3 shadow-2xl">
-            <Search className="text-gray-400 ml-2 w-5 h-5" />
-            <input type="text" placeholder="Ex: Eletricista, Encanador, Desenvolvedor Web..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="flex-1 px-4 py-2 outline-none text-gray-800 placeholder-gray-500 text-base" />
+        <div className="relative max-w-6xl mx-auto px-4">
+          <div className="max-w-2xl">
+            <h1 className="text-4xl sm:text-6xl font-extrabold leading-tight mb-6 drop-shadow-lg">
+              Encontre o <span className="text-indigo-300">Profissional Ideal</span>
+            </h1>
+
+            <p className="text-lg sm:text-xl mb-10 text-indigo-100 leading-relaxed">Conecte-se com especialistas de confiança e contrate serviços com rapidez, qualidade e total segurança.</p>
+
+            {/* Caixa de busca refinada */}
+            <div className="bg-white/95 backdrop-blur-xl rounded-2xl flex items-center border border-white/20 max-w-2xl p-4 shadow-[0_8px_30px_rgba(0,0,0,0.35)]">
+              <Search className="text-gray-400 ml-2 w-6 h-6" />
+
+              <input type="text" placeholder="Pesquise pelo serviço desejado" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="flex-1 px-4 py-2 outline-none text-gray-800 placeholder-gray-500 text-base bg-transparent" />
+            </div>
           </div>
         </div>
       </div>

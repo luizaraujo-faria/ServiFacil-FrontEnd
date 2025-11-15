@@ -349,11 +349,11 @@ function EditService() {
 
         {/* Informações */}
         <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h3 className="font-semibold text-blue-800 mb-2">ℹ️ Informações:</h3>
+          <h3 className="font-semibold text-blue-800 mb-2">ℹ️ Dicas importantes:</h3>
           <ul className="text-sm text-blue-700 space-y-1">
-            <li>• Deixe campos em branco para manter os valores atuais</li>
-            <li>• Serviços inativos não aparecem para os clientes</li>
-            <li>• A exclusão é permanente e não pode ser desfeita</li>
+            <li>• Revise todas as informações antes de salvar.</li>
+            <li>• O status define se o serviço fica visível para os clientes.</li>
+            <li>• Você pode alterar título, preço, detalhes e categoria a qualquer momento.</li>
           </ul>
         </div>
       </div>

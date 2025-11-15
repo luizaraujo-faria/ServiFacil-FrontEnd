@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { getAllServices, deleteService } from '../services/serviceService';
 import { concludeAppointment, getServiceAppointments } from '../services/appointmentService';
 import reviewService from '../services/reviewService';
-import { Plus, Calendar, DollarSign, Star, Clock, User, CheckCircle } from 'lucide-react';
+import { Plus, Calendar, DollarSign, Star, Clock, User, CheckCircle, Trash2 } from 'lucide-react';
 import UserNavigation from '../components/UserNavigation';
 import ServiceCard from '../components/ServiceCard';
+import ConfirmModal from '../components/ConfirmModal'; // IMPORTE O MODAL
 import DashboardSkeleton from '../components/Skeleton/DashboardSkeleton';
 import toast from 'react-hot-toast';
 
@@ -18,6 +19,12 @@ function ProfessionalDashboard() {
   const [appointmentStatus, setAppointmentStatus] = useState('Pendente');
   const [serviceRatings, setServiceRatings] = useState({});
   const [averageRating, setAverageRating] = useState(0);
+
+  // NOVOS ESTADOS PARA O MODAL
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [serviceToDelete, setServiceToDelete] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -35,24 +42,17 @@ function ProfessionalDashboard() {
     const userId = localStorage.getItem('userId');
     const userType = localStorage.getItem('userType');
 
-    // Verificar se é profissional
     if (userType !== 'Profissional') {
       toast.error('Acesso restrito a profissionais');
       navigate('/home');
       return;
     }
 
-    // Carregar serviços do profissional
-
     const servicesResult = await getAllServices();
 
     if (servicesResult.success) {
-      // Filtrar apenas os serviços do profissional logado
       const filtered = servicesResult.data.filter((service) => service.professional?.userId === parseInt(userId));
-
       setMyServices(filtered);
-
-      // Carregar avaliações de cada serviço
       await loadServiceRatings(filtered);
     } else {
       console.error('❌ Erro ao carregar serviços:', servicesResult.message);
@@ -99,26 +99,56 @@ function ProfessionalDashboard() {
     }
 
     try {
-      // Buscar agendamentos de cada serviço usando o service (que trata 404)
       const allAppointmentsPromises = myServices.map(async (service) => {
         const result = await getServiceAppointments(service.professional.userId, service.serviceId, appointmentStatus);
-
         return result.success ? result.data : [];
       });
 
       const results = await Promise.all(allAppointmentsPromises);
-
       const appointments = results.flat();
-
       setAllAppointments(appointments);
 
-      // Atualizar contador de pendentes se estiver carregando pendentes
       if (appointmentStatus === 'Pendente') {
         setPendingCount(appointments.length);
       }
     } catch (error) {
       console.error('❌ Erro ao carregar agendamentos:', error);
       setAllAppointments([]);
+    }
+  };
+
+  // FUNÇÕES PARA O MODAL DE EXCLUSÃO
+  const handleOpenDeleteModal = (service) => {
+    setServiceToDelete(service);
+    setShowDeleteModal(true);
+  };
+
+  const handleCloseDeleteModal = () => {
+    setShowDeleteModal(false);
+    setServiceToDelete(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!serviceToDelete) return;
+
+    setDeleteLoading(true);
+
+    try {
+      const userId = localStorage.getItem('userId');
+      const result = await deleteService(parseInt(userId), serviceToDelete.serviceId);
+
+      if (result.success) {
+        toast.success('Serviço excluído com sucesso!');
+        loadDashboardData();
+      } else {
+        toast.error(`${result.message || 'Erro ao excluir serviço'}`);
+      }
+    } catch (error) {
+      console.error('Erro ao excluir serviço:', error);
+      toast.error('Erro inesperado ao excluir serviço');
+    } finally {
+      setDeleteLoading(false);
+      handleCloseDeleteModal();
     }
   };
 
@@ -130,8 +160,6 @@ function ProfessionalDashboard() {
       return;
     }
 
-    // Fazer requisição direta com o token do profissional
-    // mas usando o clientId no path (conforme backend espera)
     try {
       const response = await fetch(`http://localhost:8081/api/appointments/conclude/${clientId}/${appointment.appointmentId}`, {
         method: 'PATCH',
@@ -155,7 +183,6 @@ function ProfessionalDashboard() {
     }
   };
 
-  // Função para converter data do formato dd/MM/yyyy HH:mm para Date
   const parseDate = (dateString) => {
     if (!dateString) return null;
     if (dateString instanceof Date) return dateString;
@@ -197,19 +224,17 @@ function ProfessionalDashboard() {
     navigate(`/editar-servico/${serviceId}`);
   };
 
-  const handleDeleteService = async (serviceId) => {
-    const userId = localStorage.getItem('userId');
-
-    const result = await deleteService(parseInt(userId), serviceId);
-
-    if (result.success) {
-      toast.success('Serviço excluído com sucesso!');
-      // Recarregar lista de serviços
-      loadDashboardData();
-    } else {
-      toast.error(`${result.message || 'Erro ao excluir serviço'}`);
-    }
-  };
+  // REMOVA A FUNÇÃO handleDeleteService ANTIGA
+  // const handleDeleteService = async (serviceId) => {
+  //   const userId = localStorage.getItem('userId');
+  //   const result = await deleteService(parseInt(userId), serviceId);
+  //   if (result.success) {
+  //     toast.success('Serviço excluído com sucesso!');
+  //     loadDashboardData();
+  //   } else {
+  //     toast.error(`${result.message || 'Erro ao excluir serviço'}`);
+  //   }
+  // };
 
   if (loading) {
     return (
@@ -222,7 +247,6 @@ function ProfessionalDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header com Navegação */}
       <UserNavigation />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -233,6 +257,7 @@ function ProfessionalDashboard() {
             Novo Serviço
           </button>
         </div>
+
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow-md p-6">
@@ -300,7 +325,13 @@ function ProfessionalDashboard() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {myServices.map((service) => (
-                  <ServiceCard key={service.serviceId} service={service} onDelete={handleDeleteService} rating={serviceRatings[service.serviceId]} />
+                  <ServiceCard
+                    key={service.serviceId}
+                    service={service}
+                    onEdit={handleEditService}
+                    onDelete={handleOpenDeleteModal} // MUDEI PARA A NOVA FUNÇÃO
+                    rating={serviceRatings[service.serviceId]}
+                  />
                 ))}
               </div>
             )}
@@ -382,6 +413,19 @@ function ProfessionalDashboard() {
           </div>
         )}
       </div>
+
+      {/* MODAL DE CONFIRMAÇÃO DE EXCLUSÃO */}
+      <ConfirmModal
+        open={showDeleteModal}
+        title="Excluir Serviço"
+        message={`Tem certeza que deseja excluir o serviço "${serviceToDelete?.title}"? Esta ação não pode ser desfeita!`}
+        confirmText="Sim, Excluir"
+        cancelText="Manter Serviço"
+        confirmColor="red"
+        loading={deleteLoading}
+        onClose={handleCloseDeleteModal}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 }
