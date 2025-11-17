@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAllServices, getAllCategories } from '../services/serviceService';
 import reviewService from '../services/reviewService';
-import { Search, Star, DollarSign, ChevronLeft, ChevronRight, User, Briefcase } from 'lucide-react';
+import { Search, Star, DollarSign, ChevronLeft, ChevronRight, User, Briefcase, HomeIcon, Zap, Wrench, Monitor } from 'lucide-react';
 import UserNavigation from '../components/UserNavigation';
 
 // Função auxiliar para extrair o nome da categoria de forma segura
@@ -14,6 +14,16 @@ const getCategoryName = (category) => {
   if (typeof category === 'object' && category.category) return category.category;
 
   return null;
+};
+
+const categoryIcons = {
+  'Elétrica': Zap,
+  'Mecânica': Wrench,
+  'TI': Monitor,
+  'Tecnologia': Monitor,
+  'Informática': Monitor,
+  'Eletrônica': Zap,
+  'Manutenção': Wrench,
 };
 
 // --- Componente principal da Home ---
@@ -103,68 +113,92 @@ function Home() {
     <div className="min-h-screen bg-gray-50">
       <UserNavigation />
 
-      {/* HERO SECTION */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-[#0f172a] via-[#1e1b4b] to-[#312e81] text-white py-24 shadow-xl">
-        <div className="absolute inset-0 opacity-10 bg-[url('https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&q=80&w=1500')] bg-cover bg-center"></div>
-
-        <div className="relative max-w-6xl mx-auto px-4">
-          <div className="max-w-2xl">
-            <h1 className="text-4xl sm:text-6xl font-extrabold leading-tight mb-6 drop-shadow-lg">
-              Encontre o <span className="text-indigo-300">Profissional Ideal</span>
-            </h1>
-
-            <p className="text-lg sm:text-xl mb-10 text-indigo-100 leading-relaxed">Conecte-se com especialistas de confiança e contrate serviços com rapidez, qualidade e total segurança.</p>
-
-            {/* Caixa de busca refinada */}
-            <div className="bg-white/95 backdrop-blur-xl rounded-2xl flex items-center border border-white/20 max-w-2xl p-4 shadow-[0_8px_30px_rgba(0,0,0,0.35)]">
-              <Search className="text-gray-400 ml-2 w-6 h-6" />
-
-              <input type="text" placeholder="Pesquise pelo serviço desejado" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="flex-1 px-4 py-2 outline-none text-gray-800 placeholder-gray-500 text-base bg-transparent" />
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-end gap-4">
+            <div className="flex-1 max-w-2xl">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input 
+                  type="text" 
+                  placeholder="Ex: Eletricista, Encanador, Desenvolvedor Web..." 
+                  value={searchTerm} 
+                  onChange={(e) => setSearchTerm(e.target.value)} 
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100 transition text-gray-800 placeholder-gray-500 text-sm" 
+                />
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       {/* CONTEÚDO PRINCIPAL */}
-      <main className="max-w-6xl mx-auto px-4">
-        {/* --- CATEGORIAS --- */}
-        <div className="py-10">
-          <h2 className="text-3xl font-bold text-gray-800 mb-6">Categorias</h2>
+      <main className="max-w-7xl mx-auto px-4">
+        <div className="py-12">
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">Categorias</h2>
 
           {loadingCategories ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 animate-pulse">
+            <div className="flex gap-6 overflow-x-auto pb-4 animate-pulse">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-24 bg-gray-200 rounded-xl shadow-inner"></div>
+                <div key={i} className="min-w-[180px] h-28 bg-gray-200 rounded-xl"></div>
               ))}
             </div>
           ) : categories.length === 0 ? (
-            <p className="text-gray-500 italic">Nenhuma categoria encontrada.</p>
+            <p className="text-gray-500 italic text-center py-8">Nenhuma categoria encontrada.</p>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
-              {categories.map((cat, index) => (
-                <div
-                  key={index}
-                  className={`bg-white shadow-lg hover:shadow-xl rounded-xl p-6 text-center cursor-pointer transition transform hover:scale-[1.02] border ${selectedCategory === cat.name ? 'border-violet-500 ring-2 ring-violet-500' : 'border-gray-100'}`}
-                  onClick={() => setSelectedCategory(selectedCategory === cat.name ? null : cat.name)}
-                >
-                  <p className="text-xl font-semibold text-violet-700">{cat.name}</p>
-                  {cat.details && <p className="text-sm text-gray-500 mt-1 line-clamp-2">{cat.details}</p>}
-                </div>
-              ))}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+              {categories.map((cat, index) => {
+                const IconComponent = categoryIcons[cat.name] || Briefcase;
+                return (
+                  <div
+                    key={index}
+                    className={`bg-white rounded-xl p-6 text-center cursor-pointer transition hover:shadow-lg border-2 ${
+                      selectedCategory === cat.name ? 'border-purple-500 shadow-md' : 'border-gray-100'
+                    }`}
+                    onClick={() => setSelectedCategory(selectedCategory === cat.name ? null : cat.name)}
+                  >
+                    <div className="flex justify-center mb-3">
+                      <IconComponent className="w-8 h-8 text-purple-600" />
+                    </div>
+                    <p className="text-lg font-semibold text-purple-600">{cat.name}</p>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
 
         <hr className="my-8 border-gray-200" />
 
-        {/* --- PROFISSIONAIS RECOMENDADOS --- */}
-        <Section id="profissionais" title=" Profissionais Recomendados" loading={loading} items={filtered} ratings={ratings} navigate={navigate} scroll={scroll} showProfessional />
+        <Section 
+          id="profissionais" 
+          title="Profissionais Recomendados" 
+          loading={loading} 
+          items={filtered} 
+          ratings={ratings} 
+          navigate={navigate} 
+          scroll={scroll} 
+          showProfessional 
+        />
 
         <hr className="my-8 border-gray-200" />
 
-        {/* --- SERVIÇOS POPULARES --- */}
-        <Section id="servicos" title=" Serviços Populares" loading={loading} items={filtered} ratings={ratings} navigate={navigate} scroll={scroll} showProfessional={false} />
+        <Section 
+          id="servicos" 
+          title="Serviços Populares" 
+          loading={loading} 
+          items={filtered} 
+          ratings={ratings} 
+          navigate={navigate} 
+          scroll={scroll} 
+          showProfessional={false} 
+        />
       </main>
+
+      <style>{`
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+      `}</style>
     </div>
   );
 }
@@ -184,7 +218,7 @@ function ServiceCard({ service, ratings, navigate, showProfessional }) {
     if (service.professional?.profilePhoto) {
       imageSrc = service.professional.profilePhoto.startsWith('data:image') ? service.professional.profilePhoto : `data:image/jpeg;base64,${service.professional.profilePhoto}`;
     } else {
-      imageSrc = null; // Para usar o ícone User
+      imageSrc = null;
     }
   }
   // Lógica para Serviços Populares (showProfessional = false)
@@ -198,7 +232,7 @@ function ServiceCard({ service, ratings, navigate, showProfessional }) {
     <div
       key={service.serviceId}
       onClick={() => navigate(`/servico/${service.serviceId}`)}
-      className="min-w-[280px] w-[280px] bg-white rounded-xl shadow-lg hover:shadow-xl transition duration-300 cursor-pointer flex flex-col justify-between overflow-hidden group hover:translate-y-[-2px]"
+      className="min-w-[280px] w-[280px] bg-white rounded-xl shadow-md hover:shadow-xl transition duration-300 cursor-pointer flex flex-col justify-between overflow-hidden group"
     >
       {/* 1. SEÇÃO DE IMAGEM/DESTAQUE */}
       {showProfessional ? (
@@ -206,7 +240,7 @@ function ServiceCard({ service, ratings, navigate, showProfessional }) {
           <div className="w-24 h-24 rounded-full mx-auto relative z-10">
             {imageSrc ? (
               <img
-                src={imageSrc}
+                src={imageSrc || "/placeholder.svg"}
                 alt={mainTitle}
                 className="w-full h-full object-cover rounded-full border-4 border-white shadow-lg"
                 onError={(e) => {
@@ -224,13 +258,13 @@ function ServiceCard({ service, ratings, navigate, showProfessional }) {
         <img
           src={imageSrc || '/service-default.jpg'}
           alt={mainTitle}
-          className="h-40 w-full object-cover rounded-t-xl"
+          className="h-40 w-full object-cover"
           onError={(e) => {
             e.target.src = '/service-default.jpg';
           }}
         />
       ) : (
-        <div className="bg-blue-100 text-blue-800 h-24 p-4 flex items-center rounded-t-xl border-b border-blue-200 group-hover:border-blue-500 transition duration-300">
+        <div className="bg-blue-50 text-blue-800 h-24 p-4 flex items-center border-b border-blue-200">
           <Briefcase className="w-8 h-8 mr-3 opacity-80" />
           <h3 className="text-lg font-bold truncate">{mainTitle}</h3>
         </div>
@@ -255,7 +289,7 @@ function ServiceCard({ service, ratings, navigate, showProfessional }) {
       <div className="p-4 border-t border-gray-100 flex items-center justify-between mt-auto">
         {!showProfessional && service.price && (
           <div className="flex items-center gap-1">
-            <span className="text-violet-700 font-bold text-xl">R$ {service.price.toFixed(2)}</span>
+            <span className="text-purple-700 font-bold text-xl">R$ {service.price.toFixed(2)}</span>
           </div>
         )}
 
@@ -272,14 +306,22 @@ function ServiceCard({ service, ratings, navigate, showProfessional }) {
 function Section({ id, title, loading, items, ratings, navigate, scroll, showProfessional }) {
   return (
     <div className="py-10">
-      <div className="flex justify-between items-center mb-5">
-        <h2 className="text-3xl font-bold text-gray-800">{title}</h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-3xl font-bold text-gray-900">{title}</h2>
         <div className="flex gap-2">
-          <button onClick={() => scroll(id, 'left')} className="bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition text-gray-700 border border-gray-200" aria-label={`Scroll para a esquerda na seção ${title}`}>
-            <ChevronLeft className="w-5 h-5" />
+          <button 
+            onClick={() => scroll(id, 'left')} 
+            className="w-10 h-10 rounded-full bg-white border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition shadow-sm" 
+            aria-label={`Scroll para a esquerda na seção ${title}`}
+          >
+            <ChevronLeft className="w-5 h-5 text-gray-600" />
           </button>
-          <button onClick={() => scroll(id, 'right')} className="bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition text-gray-700 border border-gray-200" aria-label={`Scroll para a direita na seção ${title}`}>
-            <ChevronRight className="w-5 h-5" />
+          <button 
+            onClick={() => scroll(id, 'right')} 
+            className="w-10 h-10 rounded-full bg-white border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition shadow-sm" 
+            aria-label={`Scroll para a direita na seção ${title}`}
+          >
+            <ChevronRight className="w-5 h-5 text-gray-600" />
           </button>
         </div>
       </div>
@@ -292,7 +334,19 @@ function Section({ id, title, loading, items, ratings, navigate, scroll, showPro
         </div>
       ) : (
         <div id={id} className="flex gap-6 pb-4 overflow-x-auto scroll-smooth scrollbar-hide">
-          {items.length === 0 ? <p className="text-gray-500 italic text-lg">Nenhum item encontrado.</p> : items.map((service) => <ServiceCard key={service.serviceId} service={service} ratings={ratings} navigate={navigate} showProfessional={showProfessional} />)}
+          {items.length === 0 ? (
+            <p className="text-gray-500 italic text-lg">Nenhum item encontrado.</p>
+          ) : (
+            items.map((service) => (
+              <ServiceCard 
+                key={service.serviceId} 
+                service={service} 
+                ratings={ratings} 
+                navigate={navigate} 
+                showProfessional={showProfessional} 
+              />
+            ))
+          )}
         </div>
       )}
 
