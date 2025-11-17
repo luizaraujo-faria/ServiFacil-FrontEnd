@@ -8,7 +8,9 @@
     "build": "vite build",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "npm run build && scp -r dist/* anderson@216.238.122.65:/var/www/frontend/ || (echo 'Deploy direto falhou. Use: npm run deploy:alt' && exit 1)",
+    "deploy:alt": "npm run build && scp -r dist/* anderson@216.238.122.65:/tmp/frontend-deploy/ && ssh anderson@216.238.122.65 'sudo rm -rf /var/www/frontend/* && sudo cp -r /tmp/frontend-deploy/* /var/www/frontend/ && sudo chown -R www-data:www-data /var/www/frontend/ && sudo chmod -R 755 /var/www/frontend/ && rm -rf /tmp/frontend-deploy/'"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

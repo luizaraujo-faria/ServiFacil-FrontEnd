@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Star, MapPin, DollarSign, Calendar, ArrowLeft, User } from 'lucide-react';
+import { Star, MapPin, DollarSign, Calendar, ArrowLeft, User, Loader2 } from 'lucide-react';
 import { getServiceAssessments } from '../services/assessmentService';
 import { createAppointment } from '../services/appointmentService';
 import { getServiceById } from '../services/serviceService';
@@ -16,6 +16,7 @@ function ServiceDetail() {
   const [rating, setRating] = useState({ average: 0, total: 0 });
   const [loading, setLoading] = useState(true);
   const [showBookingModal, setShowBookingModal] = useState(false);
+  const [bookingLoading, setBookingLoading] = useState(false);
   const [bookingData, setBookingData] = useState({
     startDate: '',
     endDate: '',
@@ -84,19 +85,35 @@ function ServiceDetail() {
     e.preventDefault();
     const userId = localStorage.getItem('userId');
 
-    // Converter datas para o formato esperado pela API
-    const formattedData = {
-      startDate: formatDateForAPI(bookingData.startDate),
-      endDate: formatDateForAPI(bookingData.endDate),
-    };
+    // Validar se as datas foram preenchidas
+    if (!bookingData.startDate || !bookingData.endDate) {
+      toast.error('Por favor, preencha todas as datas');
+      return;
+    }
 
-    const result = await createAppointment(userId, serviceId, formattedData);
-    if (result.success) {
-      toast.success('Agendamento realizado com sucesso!');
-      setShowBookingModal(false);
-      navigate('/meus-agendamentos');
-    } else {
-      toast.error(`${result.message || 'Erro ao criar agendamento'}`);
+    setBookingLoading(true);
+
+    try {
+      // Converter datas para o formato esperado pela API
+      const formattedData = {
+        startDate: formatDateForAPI(bookingData.startDate),
+        endDate: formatDateForAPI(bookingData.endDate),
+      };
+
+      const result = await createAppointment(userId, serviceId, formattedData);
+      if (result.success) {
+        toast.success('Agendamento realizado com sucesso!');
+        setShowBookingModal(false);
+        setBookingData({ startDate: '', endDate: '' });
+        navigate('/meus-agendamentos');
+      } else {
+        toast.error(`${result.message || 'Erro ao criar agendamento'}`);
+      }
+    } catch (error) {
+      console.error('Erro ao criar agendamento:', error);
+      toast.error('Erro ao processar agendamento. Tente novamente.');
+    } finally {
+      setBookingLoading(false);
     }
   };
 
@@ -252,14 +269,28 @@ function ServiceDetail() {
 
       {/* Booking Modal */}
       {showBookingModal && (
-        <div className="fixed inset-0 bg-gray-900 bg-opacity-30 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={() => setShowBookingModal(false)}>
+        <div className="fixed inset-0 bg-gray-900 bg-opacity-30 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={() => !bookingLoading && setShowBookingModal(false)}>
           <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-2xl relative border border-gray-200" onClick={(e) => e.stopPropagation()}>
             {/* Botão Fechar */}
-            <button type="button" onClick={() => setShowBookingModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition" aria-label="Fechar">
+            <button 
+              type="button" 
+              onClick={() => !bookingLoading && setShowBookingModal(false)} 
+              disabled={bookingLoading}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition disabled:opacity-50 disabled:cursor-not-allowed" 
+              aria-label="Fechar"
+            >
               <ArrowLeft className="w-6 h-6 rotate-180" />
             </button>
 
             <h2 className="text-2xl font-bold mb-4 text-gray-800">Agendar Serviço</h2>
+            
+            {bookingLoading && (
+              <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-center gap-2">
+                <Loader2 className="w-5 h-5 text-yellow-600 animate-spin" />
+                <span className="text-sm text-yellow-800 font-medium">Processando agendamento...</span>
+              </div>
+            )}
+
             <form onSubmit={handleBooking} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1 text-gray-700">Data e Hora de Início</label>
@@ -267,7 +298,8 @@ function ServiceDetail() {
                   type="datetime-local"
                   value={bookingData.startDate}
                   onChange={(e) => setBookingData({ ...bookingData, startDate: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
+                  disabled={bookingLoading}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                   required
                 />
               </div>
@@ -278,17 +310,28 @@ function ServiceDetail() {
                   type="datetime-local"
                   value={bookingData.endDate}
                   onChange={(e) => setBookingData({ ...bookingData, endDate: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
+                  disabled={bookingLoading}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                   required
                 />
               </div>
 
               <div className="flex gap-3 mt-6">
-                <button type="button" onClick={() => setShowBookingModal(false)} className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium text-gray-700">
+                <button 
+                  type="button" 
+                  onClick={() => setShowBookingModal(false)} 
+                  disabled={bookingLoading}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                   Cancelar
                 </button>
-                <button type="submit" className="flex-1 px-4 py-2 bg-yellow-400 text-gray-900 rounded-lg hover:bg-yellow-500 transition font-semibold">
-                  Confirmar Agendamento
+                <button 
+                  type="submit" 
+                  disabled={bookingLoading}
+                  className="flex-1 px-4 py-2 bg-yellow-400 text-gray-900 rounded-lg hover:bg-yellow-500 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {bookingLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {bookingLoading ? 'Agendando...' : 'Confirmar Agendamento'}
                 </button>
               </div>
             </form>

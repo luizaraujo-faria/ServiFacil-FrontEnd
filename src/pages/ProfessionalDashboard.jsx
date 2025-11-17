@@ -161,7 +161,7 @@ function ProfessionalDashboard() {
     }
 
     try {
-      const response = await fetch(`http://localhost:8081/api/appointments/conclude/${clientId}/${appointment.appointmentId}`, {
+      const response = await fetch(`https://servifacil-backend.onrender.com/api/appointments/conclude/${clientId}/${appointment.appointmentId}`, {
         method: 'PATCH',
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,

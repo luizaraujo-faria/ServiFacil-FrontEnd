@@ -128,34 +128,160 @@ function Profile() {
       return;
     }
 
+    // Converter userType de exibição (Cliente/Profissional) para API (PF/PJ)
+    let userTypeForAPI = 'PF';
+    if (formData.userType === 'Profissional' || formData.userType === 'PJ') {
+      userTypeForAPI = 'PJ';
+    } else if (formData.userType === 'Cliente' || formData.userType === 'PF') {
+      userTypeForAPI = 'PF';
+    }
+
+    // Função para remover formatação de CPF/CNPJ (apenas números)
+    const cleanDocument = (doc) => {
+      if (!doc || typeof doc !== 'string') return null;
+      const cleaned = doc.replace(/\D/g, ''); // Remove tudo que não é dígito
+      return cleaned.length > 0 ? cleaned : null;
+    };
+
+    // Função para limpar telefone (remove formatação)
+    const cleanPhone = (phone) => {
+      if (!phone || typeof phone !== 'string') return '';
+      return phone.replace(/\D/g, ''); // Remove tudo que não é dígito
+    };
+
+    // Função para limpar CEP (remove hífen e espaços)
+    const cleanZipCode = (zipCode) => {
+      if (!zipCode || typeof zipCode !== 'string') return '';
+      return zipCode.replace(/\D/g, ''); // Remove tudo que não é dígito
+    };
+
+    // Obter fotos atual e nova
+    const currentPhoto = user?.profilePhoto || '';
+    const newPhoto = formData.profilePhoto || '';
+
+    // Tratar complement - converter "N/A" para null
+    let complementValue = formData.complement;
+    if (!complementValue || 
+        complementValue.trim() === '' || 
+        complementValue === 'N/A' || 
+        complementValue === 'n/a' ||
+        complementValue === 'null') {
+      complementValue = null;
+    }
+
+    // Obter RG original do usuário
+    const originalRg = user?.rg || '';
+
     const dataToSend = {
       userName: formData.userName || '',
       email: formData.email || '',
-      telephone: formData.telephone || '',
-      cpf: formData.cpf || null,
-      cnpj: formData.cnpj || null,
-      userType: formData.userType || 'PF',
+      telephone: cleanPhone(formData.telephone) || null,
+      cpf: cleanDocument(formData.cpf),
+      cnpj: cleanDocument(formData.cnpj),
+      userType: userTypeForAPI,
       birthDate: formData.birthDate ? formatDateForDisplay(formData.birthDate) : null,
-      profilePhoto: formData.profilePhoto || null,
-      zipCode: formData.zipCode || '',
-      street: formData.street || '',
-      houseNumber: formData.houseNumber || '',
-      complement: formData.complement || '',
-      neighborhood: formData.neighborhood || '',
-      city: formData.city || '',
-      state: formData.state || '',
+      zipCode: cleanZipCode(formData.zipCode) || null,
+      street: formData.street || null,
+      houseNumber: formData.houseNumber || null,
+      complement: complementValue,
+      neighborhood: formData.neighborhood || null,
+      city: formData.city || null,
+      state: formData.state || null,
     };
+
+    // Adicionar RG - manter o original se existir, especialmente para PJ
+    if (originalRg && originalRg.trim() !== '') {
+      dataToSend.rg = originalRg;
+    } else if (formData.rg && formData.rg.trim() !== '') {
+      // Se não tem original mas tem no formData, usar do formData
+      dataToSend.rg = formData.rg.replace(/\D/g, ''); // Remove formatação
+    }
+
+    // Adicionar foto se houver uma nova foto ou se estiver editando
+    // Sempre enviar a foto atual do formData se ela existir
+    if (newPhoto && newPhoto.trim() !== '' && newPhoto !== 'null') {
+      dataToSend.profilePhoto = newPhoto;
+    } else if (currentPhoto && currentPhoto.trim() !== '') {
+      // Se não há nova foto mas há uma foto atual, manter ela
+      dataToSend.profilePhoto = currentPhoto;
+    }
 
     // Apenas adiciona senha se foi preenchida e não está vazia
     if (formData.userPassword && formData.userPassword.trim() !== '') {
       dataToSend.userPassword = formData.userPassword;
     }
 
+    // Limpar CPF/CNPJ baseado no tipo de usuário
     if (dataToSend.userType === 'PF') {
-      dataToSend.cnpj = null;
+      // Para PF, remover CNPJ completamente
+      delete dataToSend.cnpj;
+      // Remover CPF se estiver vazio ou inválido
+      if (!dataToSend.cpf || dataToSend.cpf === '' || dataToSend.cpf.length < 11) {
+        delete dataToSend.cpf;
+      }
     } else if (dataToSend.userType === 'PJ') {
-      dataToSend.cpf = null;
+      // Para PJ, manter o CPF original do usuário se existir
+      // Isso evita que o backend tente atualizar para NULL
+      const originalCpf = user?.cpf || '';
+      if (originalCpf && originalCpf.trim() !== '') {
+        // Se o usuário já tem CPF no banco, manter ele
+        dataToSend.cpf = originalCpf;
+      } else {
+        // Se não tem CPF, remover o campo para não enviar
+        delete dataToSend.cpf;
+      }
+      // Para PJ, garantir que RG seja mantido (não pode ser NULL)
+      if (!dataToSend.rg || dataToSend.rg === '') {
+        // Se não tem RG no dataToSend, usar o original
+        if (originalRg && originalRg.trim() !== '') {
+          dataToSend.rg = originalRg;
+        } else {
+          // Se não tem RG original, usar um valor padrão para evitar NULL
+          dataToSend.rg = '000000000';
+        }
+      }
+      // Remover CNPJ se estiver vazio ou inválido
+      if (!dataToSend.cnpj || dataToSend.cnpj === '' || dataToSend.cnpj.length < 14) {
+        delete dataToSend.cnpj;
+      }
+    } else {
+      // Para PF, garantir que RG seja mantido se existir
+      if (!dataToSend.rg || dataToSend.rg === '') {
+        if (originalRg && originalRg.trim() !== '') {
+          dataToSend.rg = originalRg;
+        }
+      }
     }
+
+    // Limpar campos vazios para evitar enviar strings vazias
+    Object.keys(dataToSend).forEach(key => {
+      if (dataToSend[key] === '' || 
+          (typeof dataToSend[key] === 'string' && dataToSend[key].trim() === '') ||
+          dataToSend[key] === 'N/A' ||
+          dataToSend[key] === 'n/a') {
+        dataToSend[key] = null;
+      }
+    });
+
+    // Verificar tamanho da foto se estiver sendo enviada
+    if (dataToSend.profilePhoto && typeof dataToSend.profilePhoto === 'string') {
+      if (dataToSend.profilePhoto.length > 2000000) { // Se maior que ~2MB
+        console.warn('⚠️ Foto muito grande, pode causar problemas. Tamanho:', (dataToSend.profilePhoto.length / 1024 / 1024).toFixed(2), 'MB');
+        // Ainda envia, mas avisa
+      }
+    }
+
+    // Log para debug (remover em produção se necessário)
+    console.log('📤 Dados sendo enviados para a API:', JSON.stringify(dataToSend, null, 2));
+    console.log('📊 Resumo dos dados:', {
+      temFoto: !!dataToSend.profilePhoto,
+      temSenha: !!dataToSend.userPassword,
+      userType: dataToSend.userType,
+      temCPF: !!dataToSend.cpf,
+      temCNPJ: !!dataToSend.cnpj,
+      temEndereco: !!(dataToSend.zipCode || dataToSend.street),
+    });
+
     try {
       setSaving(true);
 
@@ -179,10 +305,56 @@ function Profile() {
       if (error.response) {
         console.error('📋 Status:', error.response.status);
         console.error('📄 Dados do erro:', error.response.data);
+        console.error('📤 Dados enviados:', dataToSend);
+        console.error('📄 Response completa:', error.response);
+        console.error('📄 Headers da resposta:', error.response.headers);
 
-        const errorMessage = error.response.data?.message || 'Erro interno do servidor. Verifique se todos os campos obrigatórios estão preenchidos.';
-        toast.error(`Erro ao atualizar perfil: ${errorMessage}`);
+        // Tentar extrair mensagem de erro mais detalhada
+        let errorMessage = 'Erro interno do servidor (500)';
+        let errorDetails = '';
+        
+        if (error.response.data) {
+          if (typeof error.response.data === 'string') {
+            errorMessage = error.response.data;
+          } else {
+            // Tentar diferentes propriedades comuns de erro
+            errorMessage = error.response.data.message || 
+                          error.response.data.error || 
+                          error.response.data.errorMessage ||
+                          error.response.data.msg ||
+                          'Erro interno do servidor';
+            
+            // Capturar detalhes adicionais
+            if (error.response.data.errors) {
+              errorDetails = Array.isArray(error.response.data.errors) 
+                ? error.response.data.errors.join(', ')
+                : JSON.stringify(error.response.data.errors);
+            } else if (error.response.data.details) {
+              errorDetails = JSON.stringify(error.response.data.details);
+            } else if (Object.keys(error.response.data).length > 0) {
+              // Se não encontrou mensagem, mostrar toda a estrutura
+              errorDetails = JSON.stringify(error.response.data, null, 2);
+            }
+          }
+        }
+        
+        // Exibir mensagem completa
+        const fullMessage = errorDetails 
+          ? `${errorMessage}\n\nDetalhes: ${errorDetails}` 
+          : errorMessage;
+        
+        console.error('💥 Mensagem de erro completa:', fullMessage);
+        toast.error(`Erro ao atualizar: ${errorMessage}`, { 
+          duration: 6000,
+          style: { maxWidth: '500px' }
+        });
+        
+        // Se houver detalhes, mostrar no console
+        if (errorDetails) {
+          console.error('📝 Detalhes do erro:', errorDetails);
+        }
       } else {
+        console.error('Erro de rede:', error.message);
         toast.error('Erro de conexão. Tente novamente.');
       }
     } finally {

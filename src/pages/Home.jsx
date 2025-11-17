@@ -72,7 +72,11 @@ function Home() {
         for (const service of result.data) {
           try {
             const ratingRes = await reviewService.getServiceRating(service.serviceId);
-            ratingsData[service.serviceId] = ratingRes.averageRating || 0;
+            if (ratingRes.success && ratingRes.data) {
+              ratingsData[service.serviceId] = parseFloat(ratingRes.data.average_rating) || 0;
+            } else {
+              ratingsData[service.serviceId] = 0;
+            }
           } catch {
             ratingsData[service.serviceId] = 0;
           }
@@ -208,7 +212,8 @@ function ServiceCard({ service, ratings, navigate, showProfessional }) {
   let imageSrc = '/service-default.jpg';
   let mainTitle = service.title;
   let subTitle = service.details;
-  let rating = ratings[service.serviceId]?.toFixed(1) || '0.0';
+  const ratingValue = ratings[service.serviceId] || 0;
+  let rating = typeof ratingValue === 'number' ? ratingValue.toFixed(1) : '0.0';
 
   // Lógica para Profissionais (showProfessional = true)
   if (showProfessional) {
